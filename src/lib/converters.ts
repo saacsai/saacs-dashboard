@@ -47,7 +47,7 @@ export function getFileExt(filename: string): string {
 }
 
 export function isClientSideConvertible(ext: string): boolean {
-  return ['pdf', 'docx', 'doc', 'xlsx'].includes(ext)
+  return ['docx', 'doc', 'xlsx'].includes(ext)
 }
 
 // Rota pelo tipo — retorna null para formatos que precisam do servidor
