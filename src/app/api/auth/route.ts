@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Trocar por token via MCP (server-to-server, sem CORS)
-    const mcpUrl = process.env.NEXT_PUBLIC_MCP_URL || 'https://mcp.saacs.com.br'
+    const mcpUrl = (process.env.NEXT_PUBLIC_MCP_URL || 'https://mcp.saacs.com.br').trim()
     const tokenRes = await fetch(`${mcpUrl}/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
