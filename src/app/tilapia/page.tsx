@@ -45,10 +45,10 @@ function TilapiaPage() {
     setError('')
 
     try {
-      // Validar CPF + project_id no Supabase
+      // Validar project_id e buscar credenciais + client_id
       const { data, error: sbErr } = await supabase
         .from('tlp_projetos')
-        .select('id, oauth_client_id, oauth_client_secret')
+        .select('id, client_id, oauth_client_id, oauth_client_secret')
         .eq('id', pid)
         .single()
 
@@ -58,16 +58,18 @@ function TilapiaPage() {
       }
 
       // Verificar CPF na tabela clients
-      const { data: clientData } = await supabase
-        .from('clients')
-        .select('cpf')
-        .eq('id', (await supabase.from('tlp_projetos').select('client_id').eq('id', pid).single()).data?.client_id)
-        .single()
+      if (data.client_id) {
+        const { data: clientData } = await supabase
+          .from('clients')
+          .select('cpf')
+          .eq('id', data.client_id)
+          .single()
 
-      const cpfCadastrado = clientData?.cpf?.replace(/\D/g, '')
-      if (cpfCadastrado && cpfCadastrado !== cpfNum) {
-        setError('CPF não corresponde ao projeto.')
-        return
+        const cpfCadastrado = clientData?.cpf?.replace(/\D/g, '')
+        if (cpfCadastrado && cpfCadastrado !== cpfNum) {
+          setError('CPF não corresponde ao projeto.')
+          return
+        }
       }
 
       // Gerar token via OAuth client_credentials
