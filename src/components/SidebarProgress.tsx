@@ -27,13 +27,15 @@ export default function SidebarProgress({ fases, concluido, nomeUsuario, tipoPro
 
   return (
     <aside className="w-full h-full flex flex-col bg-white border-r border-gray-200">
-      {/* Logo faixa full-width */}
-      <div className="bg-[#1E3A6E] px-6 py-5 flex flex-col items-start">
-        <div className="flex items-baseline gap-0 font-black tracking-tight leading-none text-2xl">
-          <span className="text-white">TILAP</span>
-          <span className="text-[#94C4E8]">IA</span>
+      {/* Logo quadrado azul */}
+      <div className="p-4">
+        <div className="w-28 h-28 bg-[#1E3A6E] rounded-lg flex flex-col items-center justify-center">
+          <div className="flex items-baseline gap-0 font-black tracking-tight leading-none text-xl">
+            <span className="text-white">TILAP</span>
+            <span className="text-[#94C4E8]">IA</span>
+          </div>
+          <div className="text-white/60 font-medium tracking-widest uppercase text-[9px] mt-1">Standard</div>
         </div>
-        <div className="text-white/60 font-medium tracking-widest uppercase text-[10px] mt-1">Standard</div>
       </div>
 
       <div className="p-4 flex flex-col flex-1">
