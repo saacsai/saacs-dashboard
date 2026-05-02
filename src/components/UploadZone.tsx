@@ -37,14 +37,11 @@ export default function UploadZone({ ingrediente, fase, projectId, token, onSucc
           arquivo_original: file.name,
           tamanho_bytes: file.size,
         }
-        const resp = await fetch(
-          `${process.env.NEXT_PUBLIC_MCP_URL || 'https://mcp.saacs.com.br'}/api/projetos/${projectId}/mise-en-place/upload-text`,
-          {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          }
-        )
+        const resp = await fetch(`/api/upload/${projectId}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
         res = await resp.json()
       } else {
         // Imagem: envia arquivo direto para o servidor converter com MarkItDown
@@ -52,14 +49,11 @@ export default function UploadZone({ ingrediente, fase, projectId, token, onSucc
         form.append('arquivo', file)
         form.append('fase', fase)
         form.append('ingrediente', ingrediente)
-        const resp = await fetch(
-          `${process.env.NEXT_PUBLIC_MCP_URL || 'https://mcp.saacs.com.br'}/api/projetos/${projectId}/mise-en-place/upload`,
-          {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body: form,
-          }
-        )
+        const resp = await fetch(`/api/upload/${projectId}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: form,
+        })
         res = await resp.json()
       }
 
