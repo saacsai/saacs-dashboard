@@ -1,7 +1,5 @@
 'use client'
 
-import TilapiaLogo from './TilapiaLogo'
-
 type Status = 'pendente' | 'pronto' | 'parcial'
 
 interface Fase {
@@ -28,52 +26,64 @@ export default function SidebarProgress({ fases, concluido, nomeUsuario, tipoPro
   const pct = Math.round((prontos / fases.length) * 100)
 
   return (
-    <aside className="w-full h-full flex flex-col bg-white border-r border-gray-200 p-4">
-      <div className="mb-6">
-        <TilapiaLogo size="sm" />
-        {nomeUsuario && <p className="text-sm text-gray-600 mt-2">{nomeUsuario}</p>}
-        {tipoProjeto && <p className="text-xs text-gray-400 capitalize mt-0.5">{tipoProjeto}</p>}
+    <aside className="w-full h-full flex flex-col bg-white border-r border-gray-200">
+      {/* Logo faixa full-width */}
+      <div className="bg-[#1E3A6E] px-6 py-5 flex flex-col items-start">
+        <div className="flex items-baseline gap-0 font-black tracking-tight leading-none text-2xl">
+          <span className="text-white">TILAP</span>
+          <span className="text-[#94C4E8]">IA</span>
+        </div>
+        <div className="text-white/60 font-medium tracking-widest uppercase text-[10px] mt-1">Standard</div>
       </div>
 
-      <div className="mb-4">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Mise en place</span>
-          <span>{pct}%</span>
-        </div>
-        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-blue-500 rounded-full transition-all duration-500"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
-
-      <nav className="flex-1 space-y-1">
-        {fases.map(fase => (
-          <div key={fase.id} className="flex items-center gap-2 py-1.5 px-2 rounded">
-            <StatusIcon status={fase.status} />
-            <span className={`text-sm ${fase.status === 'pronto' ? 'text-gray-700' : 'text-gray-400'}`}>
-              {fase.label}
-            </span>
+      <div className="p-4 flex flex-col flex-1">
+        {(nomeUsuario || tipoProjeto) && (
+          <div className="mb-4">
+            {nomeUsuario && <p className="text-sm text-gray-600">{nomeUsuario}</p>}
+            {tipoProjeto && <p className="text-xs text-gray-400 capitalize">{tipoProjeto}</p>}
           </div>
-        ))}
-      </nav>
+        )}
 
-      {concluido && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 text-center">
-          ✅ Mise en place concluído!
+        <div className="mb-4">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <span>Mise en place</span>
+            <span>{pct}%</span>
+          </div>
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-500 rounded-full transition-all duration-500"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
         </div>
-      )}
 
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <a
-          href="https://claude.ai"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block text-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
-        >
-          ← Voltar ao chat
-        </a>
+        <nav className="flex-1 space-y-1">
+          {fases.map(fase => (
+            <div key={fase.id} className="flex items-center gap-2 py-1.5 px-2 rounded">
+              <StatusIcon status={fase.status} />
+              <span className={`text-sm ${fase.status === 'pronto' ? 'text-gray-700' : 'text-gray-400'}`}>
+                {fase.label}
+              </span>
+            </div>
+          ))}
+        </nav>
+
+        {concluido && (
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 text-center">
+            ✅ Mise en place concluído!
+          </div>
+        )}
+
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <a
+            href="https://claude.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            ← Voltar ao chat
+          </a>
+        </div>
       </div>
     </aside>
   )
