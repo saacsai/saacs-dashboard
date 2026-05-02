@@ -4,7 +4,7 @@
 export async function convertPdfToText(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer()
   const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist')
-  GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/5.7.284/pdf.worker.min.js`
+  GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
   const pdf = await getDocument({ data: arrayBuffer }).promise
   const pages: string[] = []
