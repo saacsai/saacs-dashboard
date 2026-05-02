@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import TilapiaWorkspace from './TilapiaWorkspace'
 
 function formatCPF(v: string) {
@@ -45,56 +44,25 @@ function TilapiaPage() {
     setError('')
 
     try {
-      // Validar project_id e buscar credenciais + client_id
-      const { data, error: sbErr } = await supabase
-        .from('tlp_projetos')
-        .select('id, client_id, oauth_client_id, oauth_client_secret')
-        .eq('id', pid)
-        .single()
-
-      if (sbErr || !data) {
-        setError('Projeto não encontrado.')
-        return
-      }
-
-      // Verificar CPF na tabela clients
-      if (data.client_id) {
-        const { data: clientData } = await supabase
-          .from('clients')
-          .select('cpf')
-          .eq('id', data.client_id)
-          .single()
-
-        const cpfCadastrado = clientData?.cpf?.replace(/\D/g, '')
-        if (cpfCadastrado && cpfCadastrado !== cpfNum) {
-          setError('CPF não corresponde ao projeto.')
-          return
-        }
-      }
-
-      // Gerar token via OAuth client_credentials
-      const tokenRes = await fetch(`${process.env.NEXT_PUBLIC_MCP_URL || 'https://mcp.saacs.com.br'}/token`, {
+      const res = await fetch('/api/auth', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          grant_type: 'client_credentials',
-          client_id: data.oauth_client_id,
-          client_secret: data.oauth_client_secret,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pid, cpf: cpfNum }),
       })
 
-      if (!tokenRes.ok) {
-        setError('Erro de autenticação. Tente novamente.')
+      const json = await res.json()
+
+      if (!res.ok) {
+        setError(json.error || 'Erro de autenticação.')
         return
       }
 
-      const { access_token } = await tokenRes.json()
-      const sessionData = { projectId: pid, token: access_token, oauthClientId: data.oauth_client_id }
+      const sessionData = { projectId: pid, token: json.access_token, oauthClientId: json.oauth_client_id }
       sessionStorage.setItem(`tilapia_session_${pid}`, JSON.stringify(sessionData))
       setSession(sessionData)
 
-    } catch {
-      setError('Erro de conexão. Verifique sua internet.')
+    } catch (err) {
+      setError(`Erro: ${String(err)}`)
     } finally {
       setLoading(false)
     }
