@@ -76,7 +76,11 @@ function TilapiaPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="text-2xl font-bold text-gray-900 mb-1">SAACS</div>
+          <div className="flex items-baseline justify-center gap-0 mb-1">
+            <span className="text-2xl font-black tracking-tight text-[#1E3A6E]">TILAP</span>
+            <span className="text-2xl font-black tracking-tight text-[#7EB0D9]">IA</span>
+          </div>
+          <div className="text-xs text-gray-400 font-medium tracking-widest uppercase mb-2">Standard</div>
           <div className="text-sm text-gray-500">Mise en place do projeto</div>
         </div>
 

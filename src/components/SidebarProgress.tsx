@@ -28,11 +28,12 @@ export default function SidebarProgress({ fases, concluido, nomeUsuario, tipoPro
   return (
     <aside className="w-full h-full flex flex-col bg-white border-r border-gray-200 p-4">
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-lg font-bold text-gray-900">SAACS</span>
-          <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">TILAPIA</span>
+        <div className="flex items-baseline gap-0 mb-1">
+          <span className="text-xl font-black tracking-tight text-[#1E3A6E]">TILAP</span>
+          <span className="text-xl font-black tracking-tight text-[#7EB0D9]">IA</span>
         </div>
-        {nomeUsuario && <p className="text-sm text-gray-600">{nomeUsuario}</p>}
+        <div className="text-xs text-gray-400 font-medium tracking-wide">Standard</div>
+        {nomeUsuario && <p className="text-sm text-gray-600 mt-1">{nomeUsuario}</p>}
         {tipoProjeto && <p className="text-xs text-gray-400 capitalize">{tipoProjeto}</p>}
       </div>
 
