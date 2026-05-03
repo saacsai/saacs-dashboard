@@ -5,7 +5,7 @@ import { supabase, type MiseEnPlaceItem } from '@/lib/supabase'
 import SidebarProgress from '@/components/SidebarProgress'
 import IngredienteCard from '@/components/IngredienteCard'
 import ModalEditarPerfil from '@/components/ModalEditarPerfil'
-import ModalGerenciarPlano from '@/components/ModalGerenciarPlano'
+import GerenciarPlanoPage from '@/components/GerenciarPlanoPage'
 
 interface Props {
   projectId: string
@@ -197,46 +197,46 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
         />
       )}
 
-      {modalPlano && (
-        <ModalGerenciarPlano
-          plano={plano}
-          token={token}
-          onClose={() => setModalPlano(false)}
-        />
-      )}
-
       {/* Área de trabalho — margem esquerda = largura da sidebar */}
       <main className="ml-64 min-h-screen p-8 overflow-y-auto">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-xl font-bold text-gray-900">Mise en place</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Envie os documentos abaixo. Quando terminar, volte ao chat e avise o Claude.
-            </p>
-          </div>
+        {modalPlano ? (
+          <GerenciarPlanoPage
+            plano={plano}
+            token={token}
+            onVoltar={() => setModalPlano(false)}
+          />
+        ) : (
+          <div className="max-w-2xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-xl font-bold text-gray-900">Mise en place</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Envie os documentos abaixo. Quando terminar, volte ao chat e avise o Claude.
+              </p>
+            </div>
 
-          <div className="space-y-4">
-            {ingredientes.map(ing => (
-              <IngredienteCard
-                key={ing.id}
-                ingrediente={ing.id}
-                label={ing.label}
-                descricao={ing.descricao}
-                status={getStatus(ing.id)}
-                preview={getPreview(ing.id)}
-                fase={ing.fase}
-                projectId={projectId}
-                token={token}
-                onSuccess={onSuccess}
-                onError={onError}
-              />
-            ))}
-          </div>
+            <div className="space-y-4">
+              {ingredientes.map(ing => (
+                <IngredienteCard
+                  key={ing.id}
+                  ingrediente={ing.id}
+                  label={ing.label}
+                  descricao={ing.descricao}
+                  status={getStatus(ing.id)}
+                  preview={getPreview(ing.id)}
+                  fase={ing.fase}
+                  projectId={projectId}
+                  token={token}
+                  onSuccess={onSuccess}
+                  onError={onError}
+                />
+              ))}
+            </div>
 
-          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-            <strong>Pronto?</strong> Volte ao chat com o Claude e diga: <em>&ldquo;feito&rdquo;</em>
+            <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+              <strong>Pronto?</strong> Volte ao chat com o Claude e diga: <em>&ldquo;feito&rdquo;</em>
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   )
