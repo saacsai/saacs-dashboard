@@ -41,11 +41,7 @@ export default function SidebarProgress({ fases, concluido, nomeUsuario, plano =
   const pct = fases.length > 0 ? Math.round((prontos / fases.length) * 100) : 0
   const planoLabel = PLANO_LABEL[plano] ?? plano
 
-  const primeiroNome = nomeUsuario?.split(' ')[0] || ''
-  const sobrenome = nomeUsuario?.split(' ').slice(-1)[0] || ''
-  const nomeExibido = primeiroNome && sobrenome && primeiroNome !== sobrenome
-    ? `${primeiroNome} ${sobrenome}`
-    : primeiroNome || nomeUsuario || 'Usuário'
+  const nomeExibido = nomeUsuario || 'Usuário'
 
   return (
     <aside

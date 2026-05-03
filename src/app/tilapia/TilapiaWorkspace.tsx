@@ -71,11 +71,12 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
       if (proj.client_id) {
         const { data: client } = await supabase
           .from('clients')
-          .select('nome, tier')
+          .select('nome, sobrenome, tier')
           .eq('id', proj.client_id)
           .single()
         if (client) {
-          setNomeUsuario(client.nome || '')
+          const nomeCompleto = [client.nome, client.sobrenome].filter(Boolean).join(' ')
+          setNomeUsuario(nomeCompleto)
           setPlano(client.tier || 'free')
         }
       }
