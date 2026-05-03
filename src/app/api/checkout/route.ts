@@ -59,7 +59,6 @@ export async function POST(req: NextRequest) {
       ...(clientId ? { client_reference_id: clientId } : {}),
       success_url: `${origin}/tilapia?upgrade=success${pidParam}&session_id=` + '{CHECKOUT_SESSION_ID}',
       cancel_url: `${origin}/tilapia?upgrade=cancelled${pidParam}`,
-      billing_address_collection: 'required',
       locale: 'pt-BR',
       payment_method_types: ['card'],
     })
