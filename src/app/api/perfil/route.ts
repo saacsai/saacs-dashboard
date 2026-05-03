@@ -10,7 +10,8 @@ async function getClientId(req: NextRequest): Promise<string | null> {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return null
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'))
     const projectId = payload.project_id
     if (!projectId) return null
     const { data } = await supabase
