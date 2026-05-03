@@ -5,6 +5,7 @@ import { supabase, type MiseEnPlaceItem } from '@/lib/supabase'
 import SidebarProgress from '@/components/SidebarProgress'
 import IngredienteCard from '@/components/IngredienteCard'
 import ModalEditarPerfil from '@/components/ModalEditarPerfil'
+import ModalGerenciarPlano from '@/components/ModalGerenciarPlano'
 
 interface Props {
   projectId: string
@@ -59,6 +60,7 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
   const [emailUsuario, setEmailUsuario] = useState<string>('')
   const [plano, setPlano] = useState<string>('free')
   const [modalPerfil, setModalPerfil] = useState(false)
+  const [modalPlano, setModalPlano] = useState(false)
 
   const carregarStatus = useCallback(async () => {
     const { data: proj } = await supabase
@@ -184,6 +186,7 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
         emailUsuario={emailUsuario}
         plano={plano}
         onEditarPerfil={() => setModalPerfil(true)}
+        onGerenciarPlano={() => setModalPlano(true)}
       />
 
       {modalPerfil && (
@@ -191,6 +194,13 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
           token={token}
           onClose={() => setModalPerfil(false)}
           onSaved={nome => setNomeUsuario(nome)}
+        />
+      )}
+
+      {modalPlano && (
+        <ModalGerenciarPlano
+          plano={plano}
+          onClose={() => setModalPlano(false)}
         />
       )}
 
