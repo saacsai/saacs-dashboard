@@ -54,17 +54,31 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
   const [tipoProjeto, setTipoProjeto] = useState<string>('edital')
   const [concluido, setConcluido] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [nomeUsuario, setNomeUsuario] = useState<string>('')
+  const [plano, setPlano] = useState<string>('free')
 
   const carregarStatus = useCallback(async () => {
     const { data: proj } = await supabase
       .from('tlp_projetos')
-      .select('tipo, mise_en_place_concluido')
+      .select('tipo, mise_en_place_concluido, client_id')
       .eq('id', projectId)
       .single()
 
     if (proj) {
       setTipoProjeto(normalizarTipo(proj.tipo))
       setConcluido(proj.mise_en_place_concluido || false)
+
+      if (proj.client_id) {
+        const { data: client } = await supabase
+          .from('clients')
+          .select('nome, tier')
+          .eq('id', proj.client_id)
+          .single()
+        if (client) {
+          setNomeUsuario(client.nome || '')
+          setPlano(client.tier || 'free')
+        }
+      }
     }
 
     const { data } = await supabase
@@ -156,18 +170,18 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* Sidebar 1/4 */}
-      <div className="w-64 min-h-screen flex-shrink-0">
-        <SidebarProgress
-          fases={fasesComStatus}
-          concluido={concluido}
-          tipoProjeto={tipoProjeto}
-        />
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Sidebar fixa */}
+      <SidebarProgress
+        fases={fasesComStatus}
+        concluido={concluido}
+        tipoProjeto={tipoProjeto}
+        nomeUsuario={nomeUsuario}
+        plano={plano}
+      />
 
-      {/* Área de trabalho 3/4 */}
-      <main className="flex-1 p-8 overflow-y-auto">
+      {/* Área de trabalho — margem esquerda = largura da sidebar */}
+      <main className="ml-64 min-h-screen p-8 overflow-y-auto">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
             <h1 className="text-xl font-bold text-gray-900">Mise en place</h1>
