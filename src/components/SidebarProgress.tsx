@@ -99,7 +99,11 @@ export default function SidebarProgress({ fases, concluido, nomeUsuario, emailUs
             initials={initials(nomeUsuario || 'U')}
             onEditarPerfil={() => onEditarPerfil?.()}
             onGerenciarPlano={() => onGerenciarPlano?.()}
-            onSair={() => { sessionStorage.clear(); window.location.href = '/' }}
+            onSair={() => {
+              const pid = new URLSearchParams(window.location.search).get('pid')
+              sessionStorage.clear()
+              window.location.href = pid ? `/tilapia?pid=${pid}` : '/tilapia'
+            }}
           />
         </div>
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import Stripe from 'stripe'
 
 const PRICES: Record<string, string> = {
   mensal:    'price_1TSyKhFR1kh8rsAT0Wn7ea73',
@@ -35,14 +36,12 @@ export async function POST(req: NextRequest) {
 
     const { plano } = await req.json().catch(() => ({ plano: 'mensal' }))
     const priceId = PRICES[plano] || PRICES.mensal
-    const isRecurring = true  // todos os 3 são recurring
     const origin = req.headers.get('origin') || 'https://dashboard.saacs.com.br'
     const email = await getClientEmail(req)
 
-    const { default: Stripe } = await import('stripe')
     const stripe = new Stripe(secretKey)
 
-    const sessionData: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+    const sessionData: Stripe.Checkout.SessionCreateParams = {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       ...(email ? { customer_email: email } : {}),
