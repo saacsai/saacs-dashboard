@@ -19,6 +19,7 @@ interface Props {
   emailUsuario?: string
   plano?: string
   tipoProjeto?: string
+  onEditarPerfil?: () => void
 }
 
 const PLANO_LABEL: Record<string, string> = {
@@ -38,7 +39,7 @@ function initials(nome: string) {
   return nome.split(' ').filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
 }
 
-export default function SidebarProgress({ fases, concluido, nomeUsuario, emailUsuario = '', plano = 'free', tipoProjeto }: Props) {
+export default function SidebarProgress({ fases, concluido, nomeUsuario, emailUsuario = '', plano = 'free', tipoProjeto, onEditarPerfil }: Props) {
   const prontos = fases.filter(f => f.status === 'pronto').length
   const pct = fases.length > 0 ? Math.round((prontos / fases.length) * 100) : 0
   const planoLabel = PLANO_LABEL[plano] ?? plano
@@ -95,7 +96,7 @@ export default function SidebarProgress({ fases, concluido, nomeUsuario, emailUs
             email={emailUsuario}
             planoLabel={planoLabel}
             initials={initials(nomeUsuario || 'U')}
-            onEditarPerfil={() => alert('Em breve: Editar perfil')}
+            onEditarPerfil={() => onEditarPerfil?.()}
             onGerenciarPlano={() => alert('Em breve: Gerenciar plano')}
             onSair={() => { sessionStorage.clear(); window.location.href = '/' }}
           />

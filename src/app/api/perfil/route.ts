@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+async function getClientId(req: NextRequest): Promise<string | null> {
+  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  if (!token) return null
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    const projectId = payload.project_id
+    if (!projectId) return null
+    const { data } = await supabase
+      .from('tlp_projetos')
+      .select('client_id')
+      .eq('id', projectId)
+      .single()
+    return data?.client_id ?? null
+  } catch { return null }
+}
+
+export async function GET(req: NextRequest) {
+  const clientId = await getClientId(req)
+  if (!clientId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+
+  const { data, error } = await supabase
+    .from('clients')
+    .select('nome, sobrenome, cpf, email, telefone, organizacao, cnpj, cargo, municipio, estado, atividade')
+    .eq('id', clientId)
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+export async function PATCH(req: NextRequest) {
+  const clientId = await getClientId(req)
+  if (!clientId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+
+  const body = await req.json()
+  const { cpf: _, ...updateData } = body  // CPF é read-only
+
+  const { error } = await supabase
+    .from('clients')
+    .update({ ...updateData, atualizado_em: new Date().toISOString() })
+    .eq('id', clientId)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}

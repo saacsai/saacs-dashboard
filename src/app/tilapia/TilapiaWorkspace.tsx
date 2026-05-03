@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase, type MiseEnPlaceItem } from '@/lib/supabase'
 import SidebarProgress from '@/components/SidebarProgress'
 import IngredienteCard from '@/components/IngredienteCard'
+import ModalEditarPerfil from '@/components/ModalEditarPerfil'
 
 interface Props {
   projectId: string
@@ -57,6 +58,7 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
   const [nomeUsuario, setNomeUsuario] = useState<string>('')
   const [emailUsuario, setEmailUsuario] = useState<string>('')
   const [plano, setPlano] = useState<string>('free')
+  const [modalPerfil, setModalPerfil] = useState(false)
 
   const carregarStatus = useCallback(async () => {
     const { data: proj } = await supabase
@@ -174,7 +176,6 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar fixa */}
       <SidebarProgress
         fases={fasesComStatus}
         concluido={concluido}
@@ -182,7 +183,16 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
         nomeUsuario={nomeUsuario}
         emailUsuario={emailUsuario}
         plano={plano}
+        onEditarPerfil={() => setModalPerfil(true)}
       />
+
+      {modalPerfil && (
+        <ModalEditarPerfil
+          token={token}
+          onClose={() => setModalPerfil(false)}
+          onSaved={nome => setNomeUsuario(nome)}
+        />
+      )}
 
       {/* Área de trabalho — margem esquerda = largura da sidebar */}
       <main className="ml-64 min-h-screen p-8 overflow-y-auto">
