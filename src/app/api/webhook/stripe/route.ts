@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
-// Mapeamento price_id → tier no Supabase
 const PRICE_TIER: Record<string, string> = {
   price_1TT1fQFR1kh8rsATTdStIKDN: 'standard',
   price_1TT1gOFR1kh8rsATcDiLPQ5r: 'standard',
@@ -19,16 +18,19 @@ function supabaseAdmin() {
   )
 }
 
-async function setTier(clientId: string, tier: string) {
+async function setTierByEmail(email: string, tier: string) {
   const supabase = supabaseAdmin()
-  await supabase.from('clients').update({ tier }).eq('id', clientId)
+  const { data: client } = await supabase
+    .from('clients').select('id').eq('email', email).single()
+  if (client?.id) {
+    await supabase.from('clients').update({ tier }).eq('id', client.id)
+  }
 }
 
-async function getTierFromSubscription(stripe: Stripe, subscriptionId: string): Promise<string | null> {
+async function getCustomerEmail(stripe: Stripe, customerId: string): Promise<string | null> {
   try {
-    const sub = await stripe.subscriptions.retrieve(subscriptionId)
-    const priceId = sub.items.data[0]?.price.id
-    return priceId ? (PRICE_TIER[priceId] ?? null) : null
+    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
+    return customer.email ?? null
   } catch { return null }
 }
 
@@ -55,56 +57,40 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
-        const clientId = session.client_reference_id
-        if (!clientId) break
-        const subscriptionId = session.subscription as string
-        const tier = await getTierFromSubscription(stripe, subscriptionId)
-        if (tier) await setTier(clientId, tier)
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice
+        const priceId = invoice.lines.data[0]?.price?.id
+        const tier = priceId ? (PRICE_TIER[priceId] ?? null) : null
+        if (!tier) break
+        const customerId = invoice.customer as string
+        const email = await getCustomerEmail(stripe, customerId)
+        if (email) await setTierByEmail(email, tier)
         break
       }
 
       case 'customer.subscription.deleted': {
-        // Assinatura cancelada → volta para free
         const sub = event.data.object as Stripe.Subscription
-        const customerId = sub.customer as string
-        // Busca client via stripe_customer_id ou email
-        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
-        const email = customer.email
-        if (!email) break
-        const supabase = supabaseAdmin()
-        const { data: client } = await supabase
-          .from('clients').select('id').eq('email', email).single()
-        if (client?.id) await setTier(client.id, 'free')
+        const email = await getCustomerEmail(stripe, sub.customer as string)
+        if (email) await setTierByEmail(email, 'free')
         break
       }
 
       case 'customer.subscription.updated': {
-        // Plano alterado (upgrade/downgrade via portal)
         const sub = event.data.object as Stripe.Subscription
         const priceId = sub.items.data[0]?.price.id
-        const newTier = priceId ? (PRICE_TIER[priceId] ?? null) : null
-        if (!newTier) break
-        const customerId = sub.customer as string
-        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
-        const email = customer.email
-        if (!email) break
-        const supabase = supabaseAdmin()
-        const { data: client } = await supabase
-          .from('clients').select('id').eq('email', email).single()
-        if (client?.id) await setTier(client.id, newTier)
+        const tier = priceId ? (PRICE_TIER[priceId] ?? null) : null
+        if (!tier) break
+        const email = await getCustomerEmail(stripe, sub.customer as string)
+        if (email) await setTierByEmail(email, tier)
         break
       }
     }
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e)
-    console.error('Webhook handler error:', msg)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Webhook error:', e instanceof Error ? e.message : String(e))
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 
   return NextResponse.json({ received: true })
 }
 
-// Stripe exige o body raw — desabilita o bodyParser do Next.js
 export const config = { api: { bodyParser: false } }
