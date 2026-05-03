@@ -20,10 +20,10 @@ interface Props {
 }
 
 const PLANO_LABEL: Record<string, string> = {
-  free: 'Gratuito',
-  standard: 'Standard',
-  corporate: 'Corporate',
-  paid_pro: 'Pro',
+  free: 'Plano Gratuito',
+  standard: 'Plano Standard',
+  corporate: 'Plano Corporate',
+  paid_pro: 'Plano Pro',
 }
 
 function StatusIcon({ status }: { status: Status }) {
