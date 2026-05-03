@@ -13,29 +13,19 @@ const ATIVIDADES = [
   'Coordenador de projetos', 'Educador', 'Empreendedor social', 'Outro',
 ]
 
-const ESTADOS = [
-  'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS',
-  'MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO',
-]
-
 interface FormData {
   nome: string
   sobrenome: string
   cpf: string
   email: string
-  telefone: string
-  organizacao: string
+  whatsapp: string
   cnpj: string
-  cargo: string
-  municipio: string
-  estado: string
   atividade: string
 }
 
 export default function ModalEditarPerfil({ token, onClose, onSaved }: Props) {
   const [form, setForm] = useState<FormData>({
-    nome: '', sobrenome: '', cpf: '', email: '', telefone: '',
-    organizacao: '', cnpj: '', cargo: '', municipio: '', estado: '', atividade: '',
+    nome: '', sobrenome: '', cpf: '', email: '', whatsapp: '', cnpj: '', atividade: '',
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -75,14 +65,12 @@ export default function ModalEditarPerfil({ token, onClose, onSaved }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        {/* Header */}
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-900">Editar perfil</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
         </div>
 
-        {/* Body */}
         <div className="overflow-y-auto flex-1 px-6 py-4">
           {loading ? (
             <div className="flex items-center justify-center h-32 text-gray-400 text-sm">Carregando…</div>
@@ -94,24 +82,8 @@ export default function ModalEditarPerfil({ token, onClose, onSaved }: Props) {
               </div>
               <Field label="CPF" value={form.cpf} onChange={() => {}} readOnly />
               <Field label="Email *" type="email" value={form.email} onChange={set('email')} required />
-              <Field label="Telefone" value={form.telefone} onChange={set('telefone')} placeholder="(11) 99999-9999" />
-              <Field label="Organização" value={form.organizacao} onChange={set('organizacao')} />
+              <Field label="WhatsApp" value={form.whatsapp} onChange={set('whatsapp')} placeholder="(11) 99999-9999" />
               <Field label="CNPJ" value={form.cnpj} onChange={set('cnpj')} placeholder="00.000.000/0001-00" />
-              <Field label="Cargo / função" value={form.cargo} onChange={set('cargo')} />
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Município" value={form.municipio} onChange={set('municipio')} />
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Estado</label>
-                  <select
-                    value={form.estado}
-                    onChange={set('estado')}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">—</option>
-                    {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
-                  </select>
-                </div>
-              </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Atividade principal</label>
                 <select
@@ -130,14 +102,10 @@ export default function ModalEditarPerfil({ token, onClose, onSaved }: Props) {
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors">
-            Cancelar
-          </button>
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Cancelar</button>
           <button
-            form="perfil-form"
-            type="submit"
+            form="perfil-form" type="submit"
             disabled={saving || loading}
             className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
@@ -157,12 +125,8 @@ function Field({ label, value, onChange, type = 'text', readOnly = false, requir
     <div>
       <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
       <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        readOnly={readOnly}
-        required={required}
-        placeholder={placeholder}
+        type={type} value={value} onChange={onChange}
+        readOnly={readOnly} required={required} placeholder={placeholder}
         className={`w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
           ${readOnly ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : ''}`}
       />

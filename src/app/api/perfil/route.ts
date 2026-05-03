@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('clients')
-    .select('nome, sobrenome, cpf, email, telefone, organizacao, cnpj, cargo, municipio, estado, atividade')
+    .select('nome, sobrenome, cpf, email, whatsapp, cnpj, atividade')
     .eq('id', clientId)
     .single()
 
@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest) {
 
   const { error } = await supabase
     .from('clients')
-    .update({ ...updateData, atualizado_em: new Date().toISOString() })
+    .update({ ...updateData, updated_at: new Date().toISOString() })
     .eq('id', clientId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
