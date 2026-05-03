@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase, type MiseEnPlaceItem } from '@/lib/supabase'
 import SidebarProgress from '@/components/SidebarProgress'
 import IngredienteCard from '@/components/IngredienteCard'
@@ -61,6 +61,8 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
   const [plano, setPlano] = useState<string>('free')
   const [modalPerfil, setModalPerfil] = useState(false)
   const [modalPlano, setModalPlano] = useState(false)
+  const [upgradeMsg, setUpgradeMsg] = useState<'success' | 'cancelled' | null>(null)
+  const upgradeMsgShown = useRef(false)
 
   const carregarStatus = useCallback(async () => {
     const { data: proj } = await supabase
@@ -97,6 +99,18 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
     setItems(data || [])
     setLoading(false)
   }, [projectId])
+
+  useEffect(() => {
+    if (!upgradeMsgShown.current) {
+      const params = new URLSearchParams(window.location.search)
+      const upgrade = params.get('upgrade')
+      if (upgrade === 'success' || upgrade === 'cancelled') {
+        setUpgradeMsg(upgrade)
+        upgradeMsgShown.current = true
+        setTimeout(() => setUpgradeMsg(null), 6000)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     carregarStatus()
@@ -188,6 +202,18 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
         onEditarPerfil={() => setModalPerfil(true)}
         onGerenciarPlano={() => setModalPlano(true)}
       />
+
+      {upgradeMsg && (
+        <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${
+          upgradeMsg === 'success'
+            ? 'bg-green-600 text-white'
+            : 'bg-gray-700 text-white'
+        }`}>
+          {upgradeMsg === 'success'
+            ? '✓ Assinatura confirmada! Seu plano foi ativado.'
+            : 'Pagamento cancelado. Seu plano não foi alterado.'}
+        </div>
+      )}
 
       {/* Área de trabalho — margem esquerda = largura da sidebar */}
       <main className="ml-64 min-h-screen p-8 overflow-y-auto">
