@@ -22,6 +22,7 @@ export default function EditarPerfilPage({ token, onVoltar, onSaved }: Props) {
   const [form, setForm] = useState({
     nome: '', sobrenome: '', cpf: '', email: '',
     whatsapp: '', cnpj: '', atividade: '',
+    endereco_linha1: '', endereco_linha2: '', cidade: '', uf: '', cep: '',
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -41,6 +42,11 @@ export default function EditarPerfilPage({ token, onVoltar, onSaved }: Props) {
           whatsapp: d.whatsapp || '',
           cnpj: d.cnpj || '',
           atividade: d.atividade || '',
+          endereco_linha1: d.endereco_linha1 || '',
+          endereco_linha2: d.endereco_linha2 || '',
+          cidade: d.cidade || '',
+          uf: d.uf || '',
+          cep: d.cep || '',
         })
       })
       .catch(() => setErro('Erro ao carregar perfil.'))
@@ -119,6 +125,19 @@ export default function EditarPerfilPage({ token, onVoltar, onSaved }: Props) {
           {field('E-mail', 'email', { readOnly: true })}
           {field('WhatsApp', 'whatsapp')}
           {field('CNPJ', 'cnpj')}
+
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Endereço</p>
+            <div className="space-y-3">
+              {field('Endereço (linha 1)', 'endereco_linha1')}
+              {field('Endereço (linha 2)', 'endereco_linha2')}
+              <div className="grid grid-cols-2 gap-4">
+                {field('Cidade', 'cidade')}
+                {field('UF', 'uf')}
+              </div>
+              {field('CEP', 'cep')}
+            </div>
+          </div>
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Atividade</label>

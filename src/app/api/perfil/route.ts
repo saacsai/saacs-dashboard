@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await getSupabaseRead()
     .from('clients')
-    .select('nome, sobrenome, cpf, email, whatsapp, cnpj, atividade')
+    .select('nome, sobrenome, cpf, email, whatsapp, cnpj, atividade, endereco_linha1, endereco_linha2, cidade, uf, cep')
     .eq('id', clientId)
     .single()
 
