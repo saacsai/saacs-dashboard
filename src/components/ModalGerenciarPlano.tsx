@@ -48,10 +48,11 @@ export default function ModalGerenciarPlano({ plano, token, onClose }: Props) {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
-      const json = await res.json()
-      if (!res.ok) { setErroCheckout(json.error || `Erro ${res.status}`); return }
+      const text = await res.text()
+      if (!res.ok) { setErroCheckout(`Erro ${res.status}: ${text.slice(0, 300)}`); return }
+      const json = JSON.parse(text)
       if (json.url) window.location.href = json.url
-      else setErroCheckout('URL de checkout não retornada.')
+      else setErroCheckout(json.error || 'URL não retornada.')
     } catch (e) {
       setErroCheckout(String(e))
     } finally {
