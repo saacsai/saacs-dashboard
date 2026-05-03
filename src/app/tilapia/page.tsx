@@ -158,8 +158,11 @@ function TilapiaPage() {
           </svg>
         </div>
         <h2 className="text-base font-bold text-gray-900 mb-2">Nenhum projeto ainda</h2>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-gray-500 mb-3">
           Para acessar o dashboard, você precisa iniciar sua jornada TILAPIA preenchendo o formulário de diagnóstico.
+        </p>
+        <p className="text-xs bg-blue-50 border border-blue-100 text-blue-700 rounded-lg px-3 py-2 mb-6">
+          Use o mesmo email desta conta no formulário para que o projeto seja vinculado automaticamente.
         </p>
         <a
           href="https://saacs.com.br/metodologia-tilapia/tilapia-standard/"
