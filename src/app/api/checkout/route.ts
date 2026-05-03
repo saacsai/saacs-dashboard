@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       ...(email ? { customer_email: email } : {}),
-      success_url: `${origin}/tilapia?upgrade=success&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/tilapia?upgrade=success&session_id=` + '{CHECKOUT_SESSION_ID}',
       cancel_url: `${origin}/tilapia?upgrade=cancelled`,
       locale: 'pt-BR',
       payment_method_types: ['card'],
