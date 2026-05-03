@@ -99,10 +99,15 @@ export default function SidebarProgress({ fases, concluido, nomeUsuario, emailUs
             initials={initials(nomeUsuario || 'U')}
             onEditarPerfil={() => onEditarPerfil?.()}
             onGerenciarPlano={() => onGerenciarPlano?.()}
-            onSair={() => {
-              const pid = new URLSearchParams(window.location.search).get('pid')
+            onSair={async () => {
               sessionStorage.clear()
-              window.location.href = pid ? `/tilapia?pid=${pid}` : '/tilapia'
+              const { createClient } = await import('@supabase/supabase-js')
+              const supabase = createClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+              )
+              await supabase.auth.signOut()
+              window.location.href = '/login'
             }}
           />
         </div>
