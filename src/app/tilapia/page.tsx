@@ -108,7 +108,7 @@ function TilapiaPage() {
       const lista: Projeto[] = json.projects ?? []
 
       if (lista.length === 0) {
-        setErro('Nenhum projeto encontrado para este usuário.')
+        setErro('sem_projeto')
         setLoading(false)
         return
       }
@@ -149,11 +149,47 @@ function TilapiaPage() {
     </div>
   )
 
+  if (erro === 'sem_projeto') return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-sm w-full text-center">
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: '#1C4586' }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <h2 className="text-base font-bold text-gray-900 mb-2">Nenhum projeto ainda</h2>
+        <p className="text-sm text-gray-500 mb-6">
+          Para acessar o dashboard, você precisa iniciar sua jornada TILAPIA preenchendo o formulário de diagnóstico.
+        </p>
+        <a
+          href="https://saacs.com.br/metodologia-tilapia/tilapia-standard/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full text-white text-sm font-medium rounded-xl py-2.5 mb-3 transition-colors"
+          style={{ backgroundColor: '#1C4586' }}
+        >
+          Iniciar jornada TILAPIA
+        </a>
+        <button
+          onClick={async () => {
+            const { createClient } = await import('@supabase/supabase-js')
+            const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+            await sb.auth.signOut()
+            window.location.href = '/login'
+          }}
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          Sair
+        </button>
+      </div>
+    </div>
+  )
+
   if (erro) return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-sm w-full text-center">
         <p className="text-sm text-red-600 mb-4">{erro}</p>
-        <a href="/login" className="text-sm text-[#1E3A6E] hover:underline">Voltar ao login</a>
+        <a href="/login" className="text-sm hover:underline" style={{ color: '#1C4586' }}>Voltar ao login</a>
       </div>
     </div>
   )
