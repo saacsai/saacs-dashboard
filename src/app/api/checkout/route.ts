@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+const PRICES: Record<string, string> = {
+  mensal:    'price_1TSyKhFR1kh8rsAT0Wn7ea73',
+  anual:     'price_1TSyJrFR1kh8rsATCgYUcXnO',
+  parcelado: 'price_1TSyJIFR1kh8rsATHjvxJnGZ',
+}
+
 async function getClientEmail(req: NextRequest): Promise<string | null> {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return null
@@ -27,23 +33,32 @@ export async function POST(req: NextRequest) {
     const secretKey = process.env.STRIPE_SECRET_KEY
     if (!secretKey) return NextResponse.json({ error: 'STRIPE_SECRET_KEY não configurada' }, { status: 500 })
 
-    const priceId = process.env.STRIPE_PRICE_ID || 'price_1TSxg0FR1kh8rsAT2xkOxEY6'
+    const { plano } = await req.json().catch(() => ({ plano: 'mensal' }))
+    const priceId = PRICES[plano] || PRICES.mensal
+    const isRecurring = true  // todos os 3 são recurring
     const origin = req.headers.get('origin') || 'https://dashboard.saacs.com.br'
     const email = await getClientEmail(req)
 
     const { default: Stripe } = await import('stripe')
     const stripe = new Stripe(secretKey)
 
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
+    const sessionData: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+      mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       ...(email ? { customer_email: email } : {}),
       success_url: `${origin}/tilapia?upgrade=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/tilapia?upgrade=cancelled`,
       locale: 'pt-BR',
       payment_method_types: ['card'],
-    })
+    }
 
+    // Plano parcelado: cancela automaticamente após 12 meses
+    if (plano === 'parcelado') {
+      const cancelAt = Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60)
+      sessionData.subscription_data = { cancel_at: cancelAt }
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionData)
     return NextResponse.json({ url: session.url })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
