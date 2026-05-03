@@ -30,6 +30,43 @@ const INCLUSOS = [
 
 const PLANO_PAGO = ['standard', 'corporate', 'paid_pro']
 
+function PortalButton({ token }: { token: string }) {
+  const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState('')
+
+  async function handlePortal() {
+    setLoading(true)
+    setErro('')
+    try {
+      const pid = new URLSearchParams(window.location.search).get('pid') || ''
+      const res = await fetch(`/api/portal?pid=${pid}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const json = await res.json()
+      if (!res.ok) { setErro(json.error || `Erro ${res.status}`); return }
+      if (json.url) window.location.href = json.url
+    } catch (e) {
+      setErro(String(e))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <button
+        onClick={handlePortal}
+        disabled={loading}
+        className="w-full text-center text-sm font-medium border border-gray-300 text-gray-700 rounded-xl py-2.5 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+      >
+        {loading ? 'Aguarde…' : 'Gerenciar assinatura →'}
+      </button>
+      {erro && <p className="text-xs text-red-500 mt-2">{erro}</p>}
+    </div>
+  )
+}
+
 function IconBack() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -101,9 +138,12 @@ export default function GerenciarPlanoPage({ plano, token, onVoltar }: Props) {
 
       {/* Plano pago ativo */}
       {isPago && etapa === 'plano' && (
-        <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 flex items-center gap-2">
-          <span>✓</span>
-          <span>Você já tem um plano ativo. Para alterar, entre em contato: <a href="mailto:contato@saacs.com.br" className="underline">contato@saacs.com.br</a></span>
+        <div className="mb-6 space-y-3">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 flex items-center gap-2">
+            <span>✓</span>
+            <span>Você já tem um plano ativo.</span>
+          </div>
+          <PortalButton token={token} />
         </div>
       )}
 
