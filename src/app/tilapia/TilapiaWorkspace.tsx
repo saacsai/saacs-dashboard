@@ -172,6 +172,10 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
     })
   }
 
+  const totalTokens = items
+    .filter(i => i.status === 'pronto' && i.conteudo_md)
+    .reduce((acc, i) => acc + Math.round((i.conteudo_md?.length || 0) / 4), 0)
+
   const ingredientes = INGREDIENTES_POR_TIPO[tipoProjeto] || INGREDIENTES_POR_TIPO.edital
 
   const fasesComStatus = FASES_SIDEBAR.map(fase => {
@@ -238,6 +242,24 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
               <p className="text-sm text-gray-500 mt-1">
                 Envie os documentos abaixo. Quando terminar, volte ao chat e avise o Claude.
               </p>
+              {totalTokens > 0 && (
+                <div className={`mt-3 flex items-start gap-2 text-xs rounded-lg px-3 py-2 border ${
+                  totalTokens > 80000
+                    ? 'bg-amber-50 border-amber-200 text-amber-800'
+                    : 'bg-gray-50 border-gray-200 text-gray-500'
+                }`}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  {totalTokens > 80000 ? (
+                    <span>
+                      <strong>Documentos grandes detectados</strong> (~{Math.round(totalTokens / 1000)}k tokens). O Claude pode não conseguir processar tudo de uma vez. Considere remover documentos menos relevantes.
+                    </span>
+                  ) : (
+                    <span>Volume total dos documentos: ~{Math.round(totalTokens / 1000)}k tokens — dentro do limite.</span>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
