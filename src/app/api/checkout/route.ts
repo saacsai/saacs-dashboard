@@ -3,9 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
 const PRICES: Record<string, string> = {
-  mensal:    'price_1TSyKhFR1kh8rsAT0Wn7ea73',
-  anual:     'price_1TSyJrFR1kh8rsATCgYUcXnO',
-  parcelado: 'price_1TSyJIFR1kh8rsATHjvxJnGZ',
+  standard_mensal:      'price_1TT1fQFR1kh8rsATTdStIKDN',
+  standard_trimestral:  'price_1TT1gOFR1kh8rsATcDiLPQ5r',
+  standard_anual:       'price_1TT1hhFR1kh8rsATcA6ncpYJ',
+  pro_mensal:           'price_1TT0zZFR1kh8rsATsYaHMw9i',
+  pro_trimestral:       'price_1TT0yXFR1kh8rsAT8G1YLy3v',
+  pro_anual:            'price_1TT0w4FR1kh8rsATkO4M3rvN',
 }
 
 function getProjectId(req: NextRequest): string | null {
@@ -38,8 +41,10 @@ export async function POST(req: NextRequest) {
     const secretKey = process.env.STRIPE_SECRET_KEY
     if (!secretKey) return NextResponse.json({ error: 'STRIPE_SECRET_KEY não configurada' }, { status: 500 })
 
-    const { plano } = await req.json().catch(() => ({ plano: 'mensal' }))
-    const priceId = PRICES[plano] || PRICES.mensal
+    const { plano } = await req.json().catch(() => ({ plano: 'standard_mensal' }))
+    const priceId = PRICES[plano]
+    if (!priceId) return NextResponse.json({ error: `Plano inválido: ${plano}` }, { status: 400 })
+
     const origin = req.headers.get('origin') || 'https://dashboard.saacs.com.br'
     const pid = getProjectId(req)
     const email = pid ? await getClientEmail(pid) : null
@@ -47,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     const stripe = new Stripe(secretKey)
 
-    const sessionData: Stripe.Checkout.SessionCreateParams = {
+    const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       ...(email ? { customer_email: email } : {}),
@@ -55,9 +60,8 @@ export async function POST(req: NextRequest) {
       cancel_url: `${origin}/tilapia?upgrade=cancelled${pidParam}`,
       locale: 'pt-BR',
       payment_method_types: ['card'],
-    }
+    })
 
-    const session = await stripe.checkout.sessions.create(sessionData)
     return NextResponse.json({ url: session.url })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
