@@ -89,26 +89,23 @@ export default function SidebarProgress({ fases, concluido, nomeUsuario, plano =
         </div>
       )}
 
-      {/* Rodapé — powered by + usuário (estilo Claude.ai) */}
-      <div className="border-t border-gray-100 px-3 py-3">
-        {/* Powered by SAACS */}
-        <div className="flex items-center gap-1.5 mb-2.5 px-1">
-          <span className="text-[10px] text-gray-400">powered by</span>
-          <Image src="/logo_saacs.png" alt="SAACS" width={44} height={14} className="object-contain opacity-70" />
-        </div>
-
+      {/* Rodapé */}
+      <div className="border-t border-gray-100">
         {/* Avatar + nome + plano */}
-        <div className="flex items-center gap-2.5 px-1 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-          {/* Avatar */}
+        <div className="flex items-center gap-2.5 px-3 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-teal-400 flex items-center justify-center flex-shrink-0">
             <span className="text-white text-xs font-semibold">{initials(nomeUsuario || 'U')}</span>
           </div>
-
-          {/* Nome + plano */}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium text-gray-800 truncate">{nomeExibido}</div>
             <div className="text-xs text-gray-400">{planoLabel}</div>
           </div>
+        </div>
+
+        {/* Powered by SAACS — centralizado, largura harmoniosa */}
+        <div className="flex flex-col items-center gap-1 py-3 border-t border-gray-100">
+          <span className="text-[10px] text-gray-400 tracking-wide">powered by</span>
+          <Image src="/logo_saacs.png" alt="SAACS" width={120} height={38} className="object-contain opacity-60" />
         </div>
       </div>
     </aside>
