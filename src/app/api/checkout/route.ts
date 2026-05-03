@@ -8,14 +8,18 @@ const PRICES: Record<string, string> = {
   parcelado: 'price_1TSyJIFR1kh8rsATHjvxJnGZ',
 }
 
-async function getClientEmail(req: NextRequest): Promise<string | null> {
+function getProjectId(req: NextRequest): string | null {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return null
   try {
     const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
     const payload = JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'))
-    const projectId = payload.project_id
-    if (!projectId) return null
+    return payload.project_id ?? null
+  } catch { return null }
+}
+
+async function getClientEmail(projectId: string): Promise<string | null> {
+  try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -37,7 +41,9 @@ export async function POST(req: NextRequest) {
     const { plano } = await req.json().catch(() => ({ plano: 'mensal' }))
     const priceId = PRICES[plano] || PRICES.mensal
     const origin = req.headers.get('origin') || 'https://dashboard.saacs.com.br'
-    const email = await getClientEmail(req)
+    const pid = getProjectId(req)
+    const email = pid ? await getClientEmail(pid) : null
+    const pidParam = pid ? `&pid=${pid}` : ''
 
     const stripe = new Stripe(secretKey)
 
@@ -45,8 +51,8 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       ...(email ? { customer_email: email } : {}),
-      success_url: `${origin}/tilapia?upgrade=success&session_id=` + '{CHECKOUT_SESSION_ID}',
-      cancel_url: `${origin}/tilapia?upgrade=cancelled`,
+      success_url: `${origin}/tilapia?upgrade=success${pidParam}&session_id=` + '{CHECKOUT_SESSION_ID}',
+      cancel_url: `${origin}/tilapia?upgrade=cancelled${pidParam}`,
       locale: 'pt-BR',
       payment_method_types: ['card'],
     }
