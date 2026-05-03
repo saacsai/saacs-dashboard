@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase, type MiseEnPlaceItem } from '@/lib/supabase'
 import SidebarProgress from '@/components/SidebarProgress'
 import IngredienteCard from '@/components/IngredienteCard'
-import ModalEditarPerfil from '@/components/ModalEditarPerfil'
+import EditarPerfilPage from '@/components/EditarPerfilPage'
 import GerenciarPlanoPage from '@/components/GerenciarPlanoPage'
 
 interface Props {
@@ -189,17 +189,15 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
         onGerenciarPlano={() => setModalPlano(true)}
       />
 
-      {modalPerfil && (
-        <ModalEditarPerfil
-          token={token}
-          onClose={() => setModalPerfil(false)}
-          onSaved={nome => setNomeUsuario(nome)}
-        />
-      )}
-
       {/* Área de trabalho — margem esquerda = largura da sidebar */}
       <main className="ml-64 min-h-screen p-8 overflow-y-auto">
-        {modalPlano ? (
+        {modalPerfil ? (
+          <EditarPerfilPage
+            token={token}
+            onVoltar={() => setModalPerfil(false)}
+            onSaved={nome => { setNomeUsuario(nome); setModalPerfil(false) }}
+          />
+        ) : modalPlano ? (
           <GerenciarPlanoPage
             plano={plano}
             token={token}
@@ -207,6 +205,7 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
           />
         ) : (
           <div className="max-w-2xl mx-auto">
+
             <div className="mb-8">
               <h1 className="text-xl font-bold text-gray-900">Mise en place</h1>
               <p className="text-sm text-gray-500 mt-1">
