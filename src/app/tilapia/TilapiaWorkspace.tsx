@@ -242,28 +242,30 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
 
             <div className="space-y-4">
               {ingredientes.map(ing => (
-                <IngredienteCard
-                  key={ing.id}
-                  ingrediente={ing.id}
-                  label={ing.label}
-                  descricao={ing.descricao}
-                  status={getStatus(ing.id)}
-                  preview={getPreview(ing.id)}
-                  fase={ing.fase}
-                  projectId={projectId}
-                  token={token}
-                  onSuccess={onSuccess}
-                  onError={onError}
-                />
+                <>
+                  <IngredienteCard
+                    key={ing.id}
+                    ingrediente={ing.id}
+                    label={ing.label}
+                    descricao={ing.descricao}
+                    status={getStatus(ing.id)}
+                    preview={getPreview(ing.id)}
+                    fase={ing.fase}
+                    projectId={projectId}
+                    token={token}
+                    onSuccess={onSuccess}
+                    onError={onError}
+                  />
+                  {tipoProjeto === 'edital' && ing.id === 'edital' && (
+                    <AnexosZone
+                      key="anexos"
+                      projectId={projectId}
+                      token={token}
+                      anexosIniciais={items.map(i => ({ ingrediente: i.ingrediente, arquivo_original: i.arquivo_original }))}
+                    />
+                  )}
+                </>
               ))}
-
-              {tipoProjeto === 'edital' && (
-                <AnexosZone
-                  projectId={projectId}
-                  token={token}
-                  anexosIniciais={items.map(i => ({ ingrediente: i.ingrediente, arquivo_original: i.arquivo_original }))}
-                />
-              )}
             </div>
 
             <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
