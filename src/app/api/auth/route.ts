@@ -3,20 +3,17 @@ import { createClient } from '@supabase/supabase-js'
 
 export async function POST(req: NextRequest) {
   try {
-    const { pid, cpf } = await req.json()
+    const body = await req.json()
+    const { pid, cpf, email } = body
 
-    if (!pid || !cpf) {
-      return NextResponse.json({ error: 'pid e cpf obrigatórios' }, { status: 400 })
-    }
-
-    const cpfNum = cpf.replace(/\D/g, '')
+    if (!pid) return NextResponse.json({ error: 'pid obrigatório' }, { status: 400 })
+    if (!cpf && !email) return NextResponse.json({ error: 'cpf ou email obrigatório' }, { status: 400 })
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    // Buscar projeto
     const { data: projeto, error: projErr } = await supabase
       .from('tlp_projetos')
       .select('id, client_id, oauth_client_id, oauth_client_secret')
@@ -27,21 +24,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Projeto não encontrado.' }, { status: 404 })
     }
 
-    // Verificar CPF se projeto tem client_id
     if (projeto.client_id) {
       const { data: clientData } = await supabase
         .from('clients')
-        .select('cpf')
+        .select('cpf, email')
         .eq('id', projeto.client_id)
         .single()
 
-      const cpfCadastrado = clientData?.cpf?.replace(/\D/g, '')
-      if (cpfCadastrado && cpfCadastrado !== cpfNum) {
-        return NextResponse.json({ error: 'CPF não corresponde ao projeto.' }, { status: 401 })
+      if (email) {
+        // Autenticação via Supabase Auth — verifica se email bate com o projeto
+        if (clientData?.email && clientData.email !== email) {
+          return NextResponse.json({ error: 'Este projeto não pertence a este usuário.' }, { status: 403 })
+        }
+      } else {
+        // Autenticação legada via CPF
+        const cpfNum = cpf.replace(/\D/g, '')
+        const cpfCadastrado = clientData?.cpf?.replace(/\D/g, '')
+        if (cpfCadastrado && cpfCadastrado !== cpfNum) {
+          return NextResponse.json({ error: 'CPF não corresponde ao projeto.' }, { status: 401 })
+        }
       }
     }
 
-    // Trocar por token via MCP (server-to-server, sem CORS)
     const mcpUrl = (process.env.NEXT_PUBLIC_MCP_URL || 'https://mcp.saacs.com.br').trim()
     const tokenRes = await fetch(`${mcpUrl}/token`, {
       method: 'POST',
@@ -54,15 +58,12 @@ export async function POST(req: NextRequest) {
     })
 
     if (!tokenRes.ok) {
-      const body = await tokenRes.text()
-      return NextResponse.json({ error: `Erro MCP: ${body}` }, { status: 502 })
+      const errBody = await tokenRes.text()
+      return NextResponse.json({ error: `Erro MCP: ${errBody}` }, { status: 502 })
     }
 
     const { access_token } = await tokenRes.json()
-    return NextResponse.json({
-      access_token,
-      oauth_client_id: projeto.oauth_client_id,
-    })
+    return NextResponse.json({ access_token, oauth_client_id: projeto.oauth_client_id })
 
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

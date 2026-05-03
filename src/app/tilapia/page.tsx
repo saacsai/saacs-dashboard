@@ -4,120 +4,109 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { createClient } from '@supabase/supabase-js'
 import TilapiaWorkspace from './TilapiaWorkspace'
-import TilapiaLogo from '@/components/TilapiaLogo'
 
-function formatCPF(v: string) {
-  return v.replace(/\D/g, '').slice(0, 11)
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+interface Session {
+  projectId: string
+  token: string
+  oauthClientId: string
 }
 
 function TilapiaPage() {
   const params = useSearchParams()
   const pid = params.get('pid') || ''
-  const [cpf, setCpf] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [session, setSession] = useState<{
-    projectId: string
-    token: string
-    oauthClientId: string
-  } | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [erro, setErro] = useState('')
 
   useEffect(() => {
-    // Restaura sessão se já autenticado neste projeto
-    const saved = sessionStorage.getItem(`tilapia_session_${pid}`)
-    if (saved) {
-      try { setSession(JSON.parse(saved)) } catch { /* ignore */ }
-    }
-  }, [pid])
+    async function init() {
+      // 1. Tenta restaurar sessão existente (compatibilidade)
+      if (pid) {
+        const saved = sessionStorage.getItem(`tilapia_session_${pid}`)
+        if (saved) {
+          try {
+            setSession(JSON.parse(saved))
+            setLoading(false)
+            return
+          } catch { /* ignore */ }
+        }
+      }
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    if (!pid) { setError('Link inválido — falta o ID do projeto.'); return }
+      // 2. Verifica sessão Supabase Auth
+      const supabase = getSupabase()
+      const { data: { session: authSession } } = await supabase.auth.getSession()
 
-    const cpfNum = cpf.replace(/\D/g, '')
-    if (cpfNum.length !== 11) { setError('CPF inválido.'); return }
-
-    setLoading(true)
-    setError('')
-
-    try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pid, cpf: cpfNum }),
-      })
-
-      const json = await res.json()
-
-      if (!res.ok) {
-        setError(json.error || 'Erro de autenticação.')
+      if (!authSession) {
+        // Sem sessão → redireciona para login
+        window.location.href = pid ? `/login?pid=${pid}` : '/login'
         return
       }
 
-      const sessionData = { projectId: pid, token: json.access_token, oauthClientId: json.oauth_client_id }
-      sessionStorage.setItem(`tilapia_session_${pid}`, JSON.stringify(sessionData))
-      setSession(sessionData)
+      // 3. Com sessão Auth, busca projetos do usuário por email
+      const email = authSession.user.email
+      if (!email) { setErro('Email não encontrado na sessão.'); setLoading(false); return }
 
-    } catch (err) {
-      setError(`Erro: ${String(err)}`)
-    } finally {
+      // Se tem pid na URL, usa diretamente
+      const projectId = pid || await getFirstProjectId(email)
+      if (!projectId) {
+        setErro('Nenhum projeto encontrado para este usuário.')
+        setLoading(false)
+        return
+      }
+
+      // 4. Obtém token MCP para o projeto
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pid: projectId, email }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setErro(json.error || 'Erro ao autenticar.'); setLoading(false); return }
+
+      const s: Session = { projectId, token: json.access_token, oauthClientId: json.oauth_client_id }
+      sessionStorage.setItem(`tilapia_session_${projectId}`, JSON.stringify(s))
+      setSession(s)
       setLoading(false)
     }
+
+    init()
+  }, [pid])
+
+  async function getFirstProjectId(email: string): Promise<string | null> {
+    try {
+      const res = await fetch(`/api/auth/projetos?email=${encodeURIComponent(email)}`)
+      const json = await res.json()
+      return json.projects?.[0]?.id ?? null
+    } catch { return null }
   }
 
-  if (session) {
-    return <TilapiaWorkspace projectId={session.projectId} token={session.token} />
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center text-gray-400 text-sm">
+      Carregando…
+    </div>
+  )
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-3">
-            <TilapiaLogo size="lg" />
-          </div>
-          <div className="text-sm text-gray-500">Mise en place do projeto</div>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Seu CPF
-            </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={cpf}
-              onChange={e => setCpf(formatCPF(e.target.value))}
-              placeholder="000.000.000-00"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading || !pid}
-            className="w-full bg-blue-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'Verificando…' : 'Entrar'}
-          </button>
-        </form>
-
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Sem senha. Sem cadastro. Só o CPF que você usou ao criar o projeto.
-        </p>
+  if (erro) return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-sm w-full text-center">
+        <p className="text-sm text-red-600 mb-4">{erro}</p>
+        <a href="/login" className="text-sm text-[#1E3A6E] hover:underline">Voltar ao login</a>
       </div>
     </div>
   )
+
+  if (session) return <TilapiaWorkspace projectId={session.projectId} token={session.token} />
+
+  return null
 }
 
 export default function TilapiaPageWrapper() {
