@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabaseRead() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+function getSupabaseWrite() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!
+  )
+}
 
 async function getClientId(req: NextRequest): Promise<string | null> {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
@@ -14,7 +23,7 @@ async function getClientId(req: NextRequest): Promise<string | null> {
     const payload = JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'))
     const projectId = payload.project_id
     if (!projectId) return null
-    const { data } = await supabase
+    const { data } = await getSupabaseRead()
       .from('tlp_projetos')
       .select('client_id')
       .eq('id', projectId)
@@ -27,7 +36,7 @@ export async function GET(req: NextRequest) {
   const clientId = await getClientId(req)
   if (!clientId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabaseRead()
     .from('clients')
     .select('nome, sobrenome, cpf, email, whatsapp, cnpj, atividade')
     .eq('id', clientId)
@@ -42,9 +51,10 @@ export async function PATCH(req: NextRequest) {
   if (!clientId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const body = await req.json()
-  const { cpf: _, ...updateData } = body  // CPF é read-only
+  // CPF e email são read-only
+  const { cpf: _cpf, email: _email, ...updateData } = body
 
-  const { error } = await supabase
+  const { error } = await getSupabaseWrite()
     .from('clients')
     .update({ ...updateData, updated_at: new Date().toISOString() })
     .eq('id', clientId)

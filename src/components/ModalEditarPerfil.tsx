@@ -9,8 +9,13 @@ interface Props {
 }
 
 const ATIVIDADES = [
-  'Técnico ATER', 'Gestor público', 'Consultor', 'Pesquisador',
-  'Coordenador de projetos', 'Educador', 'Empreendedor social', 'Outro',
+  'Empreendedor(a)/Empresário(a)',
+  'Gestor(a) de projetos',
+  'Consultor(a)/Assessor(a)',
+  'Técnico(a) de ATER',
+  'Produtor(a) Rural',
+  'Associação/Cooperativa',
+  'Outros',
 ]
 
 interface FormData {
@@ -81,7 +86,7 @@ export default function ModalEditarPerfil({ token, onClose, onSaved }: Props) {
                 <Field label="Sobrenome *" value={form.sobrenome} onChange={set('sobrenome')} required />
               </div>
               <Field label="CPF" value={form.cpf} onChange={() => {}} readOnly />
-              <Field label="Email *" type="email" value={form.email} onChange={set('email')} required />
+              <Field label="Email" value={form.email} onChange={() => {}} readOnly />
               <Field label="WhatsApp" value={form.whatsapp} onChange={set('whatsapp')} placeholder="(11) 99999-9999" />
               <Field label="CNPJ" value={form.cnpj} onChange={set('cnpj')} placeholder="00.000.000/0001-00" />
               <div>
