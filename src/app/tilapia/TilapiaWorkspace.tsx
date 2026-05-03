@@ -6,6 +6,7 @@ import SidebarProgress from '@/components/SidebarProgress'
 import IngredienteCard from '@/components/IngredienteCard'
 import EditarPerfilPage from '@/components/EditarPerfilPage'
 import GerenciarPlanoPage from '@/components/GerenciarPlanoPage'
+import AnexosZone from '@/components/AnexosZone'
 
 interface Props {
   projectId: string
@@ -255,6 +256,14 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
                   onError={onError}
                 />
               ))}
+
+              {tipoProjeto === 'edital' && (
+                <AnexosZone
+                  projectId={projectId}
+                  token={token}
+                  anexosIniciais={items.map(i => ({ ingrediente: i.ingrediente, arquivo_original: i.arquivo_original }))}
+                />
+              )}
             </div>
 
             <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
