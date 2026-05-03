@@ -120,7 +120,7 @@ export default function LoginPage() {
           </div>
           <p className="text-sm font-medium text-gray-900">Verifique seu email</p>
           <p className="text-sm text-gray-500">{mensagem}</p>
-          <button onClick={() => setMensagem('')} className="text-xs hover:underline mt-2" style={{ color: '#1b4586' }}>
+          <button onClick={() => setMensagem('')} className="text-xs hover:underline mt-2" style={{ color: '#1C4586' }}>
             Voltar
           </button>
         </div>
@@ -153,8 +153,8 @@ export default function LoginPage() {
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
                 required autoFocus
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 transition-colors"
-                style={{ '--tw-ring-color': '#1b4586' } as React.CSSProperties}
-                onFocus={e => e.target.style.borderColor = '#1b4586'}
+                style={{ '--tw-ring-color': '#1C4586' } as React.CSSProperties}
+                onFocus={e => e.target.style.borderColor = '#1C4586'}
                 onBlur={e => e.target.style.borderColor = ''}
               />
             </div>
@@ -164,7 +164,7 @@ export default function LoginPage() {
                 type="password" value={senha} onChange={e => setSenha(e.target.value)}
                 required
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
-                onFocus={e => e.target.style.borderColor = '#1b4586'}
+                onFocus={e => e.target.style.borderColor = '#1C4586'}
                 onBlur={e => e.target.style.borderColor = ''}
               />
             </div>
@@ -172,7 +172,7 @@ export default function LoginPage() {
             <button
               type="submit" disabled={loading}
               className="w-full text-white text-sm font-medium rounded-xl py-2.5 disabled:opacity-50 transition-colors"
-              style={{ backgroundColor: '#1b4586' }}
+              style={{ backgroundColor: '#1C4586' }}
             >
               {loading ? 'Entrando…' : 'Entrar'}
             </button>
@@ -185,7 +185,7 @@ export default function LoginPage() {
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
                 required autoFocus
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
-                onFocus={e => e.target.style.borderColor = '#1b4586'}
+                onFocus={e => e.target.style.borderColor = '#1C4586'}
                 onBlur={e => e.target.style.borderColor = ''}
               />
             </div>
@@ -195,7 +195,7 @@ export default function LoginPage() {
                 type="password" value={senha} onChange={e => setSenha(e.target.value)}
                 required
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
-                onFocus={e => e.target.style.borderColor = '#1b4586'}
+                onFocus={e => e.target.style.borderColor = '#1C4586'}
                 onBlur={e => e.target.style.borderColor = ''}
               />
             </div>
@@ -205,7 +205,7 @@ export default function LoginPage() {
                 type="password" value={senhaConfirm} onChange={e => setSenhaConfirm(e.target.value)}
                 required
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
-                onFocus={e => e.target.style.borderColor = '#1b4586'}
+                onFocus={e => e.target.style.borderColor = '#1C4586'}
                 onBlur={e => e.target.style.borderColor = ''}
               />
             </div>
@@ -213,7 +213,7 @@ export default function LoginPage() {
             <button
               type="submit" disabled={loading}
               className="w-full text-white text-sm font-medium rounded-xl py-2.5 disabled:opacity-50 transition-colors"
-              style={{ backgroundColor: '#1b4586' }}
+              style={{ backgroundColor: '#1C4586' }}
             >
               {loading ? 'Criando conta…' : 'Criar conta'}
             </button>
@@ -245,11 +245,11 @@ export default function LoginPage() {
         <div className="mt-5 text-center">
           {modo === 'login' ? (
             <button onClick={() => trocarModo('cadastro')} className="text-xs text-gray-500 hover:underline">
-              Não tem senha ainda? <span style={{ color: '#1b4586' }}>Criar conta</span>
+              Não tem senha ainda? <span style={{ color: '#1C4586' }}>Criar conta</span>
             </button>
           ) : (
             <button onClick={() => trocarModo('login')} className="text-xs text-gray-500 hover:underline">
-              Já tem conta? <span style={{ color: '#1b4586' }}>Entrar</span>
+              Já tem conta? <span style={{ color: '#1C4586' }}>Entrar</span>
             </button>
           )}
         </div>
