@@ -51,13 +51,6 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card'],
     }
 
-    // Plano parcelado: cancela automaticamente após 12 meses
-    if (plano === 'parcelado') {
-      const cancelAt = Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sessionData.subscription_data = { cancel_at: cancelAt } as any
-    }
-
     const session = await stripe.checkout.sessions.create(sessionData)
     return NextResponse.json({ url: session.url })
   } catch (e) {
