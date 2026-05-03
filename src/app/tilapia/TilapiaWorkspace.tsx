@@ -55,6 +55,7 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
   const [concluido, setConcluido] = useState(false)
   const [loading, setLoading] = useState(true)
   const [nomeUsuario, setNomeUsuario] = useState<string>('')
+  const [emailUsuario, setEmailUsuario] = useState<string>('')
   const [plano, setPlano] = useState<string>('free')
 
   const carregarStatus = useCallback(async () => {
@@ -71,12 +72,13 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
       if (proj.client_id) {
         const { data: client } = await supabase
           .from('clients')
-          .select('nome, sobrenome, tier')
+          .select('nome, sobrenome, email, tier')
           .eq('id', proj.client_id)
           .single()
         if (client) {
           const nomeCompleto = [client.nome, client.sobrenome].filter(Boolean).join(' ')
           setNomeUsuario(nomeCompleto)
+          setEmailUsuario(client.email || '')
           setPlano(client.tier || 'free')
         }
       }
@@ -178,6 +180,7 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
         concluido={concluido}
         tipoProjeto={tipoProjeto}
         nomeUsuario={nomeUsuario}
+        emailUsuario={emailUsuario}
         plano={plano}
       />
 

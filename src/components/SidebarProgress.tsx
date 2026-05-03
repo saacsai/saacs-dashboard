@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import TilapiaLogo from './TilapiaLogo'
+import AvatarMenu from './AvatarMenu'
 
 type Status = 'pendente' | 'pronto' | 'parcial'
 
@@ -15,6 +16,7 @@ interface Props {
   fases: Fase[]
   concluido: boolean
   nomeUsuario?: string
+  emailUsuario?: string
   plano?: string
   tipoProjeto?: string
 }
@@ -36,11 +38,10 @@ function initials(nome: string) {
   return nome.split(' ').filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
 }
 
-export default function SidebarProgress({ fases, concluido, nomeUsuario, plano = 'free', tipoProjeto }: Props) {
+export default function SidebarProgress({ fases, concluido, nomeUsuario, emailUsuario = '', plano = 'free', tipoProjeto }: Props) {
   const prontos = fases.filter(f => f.status === 'pronto').length
   const pct = fases.length > 0 ? Math.round((prontos / fases.length) * 100) : 0
   const planoLabel = PLANO_LABEL[plano] ?? plano
-
   const nomeExibido = nomeUsuario || 'Usuário'
 
   return (
@@ -87,19 +88,21 @@ export default function SidebarProgress({ fases, concluido, nomeUsuario, plano =
 
       {/* Rodapé */}
       <div className="border-t border-gray-100">
-        {/* Avatar + nome + plano */}
-        <div className="flex items-center gap-2.5 px-3 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-teal-400 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-semibold">{initials(nomeUsuario || 'U')}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-gray-800 truncate">{nomeExibido}</div>
-            <div className="text-xs text-gray-400">{planoLabel}</div>
-          </div>
+        {/* Avatar menu */}
+        <div className="px-2 pt-2">
+          <AvatarMenu
+            nomeExibido={nomeExibido}
+            email={emailUsuario}
+            planoLabel={planoLabel}
+            initials={initials(nomeUsuario || 'U')}
+            onEditarPerfil={() => alert('Em breve: Editar perfil')}
+            onGerenciarPlano={() => alert('Em breve: Gerenciar plano')}
+            onSair={() => { sessionStorage.clear(); window.location.href = '/' }}
+          />
         </div>
 
-        {/* Powered by SAACS — centralizado, largura harmoniosa */}
-        <div className="flex flex-col items-center gap-1 py-3 border-t border-gray-100">
+        {/* Powered by SAACS */}
+        <div className="flex flex-col items-center gap-1 py-3 border-t border-gray-100 mt-1">
           <span className="text-[10px] text-gray-400 tracking-wide">powered by</span>
           <Image src="/logo_saacs.png" alt="SAACS" width={120} height={38} className="object-contain opacity-60" />
         </div>
