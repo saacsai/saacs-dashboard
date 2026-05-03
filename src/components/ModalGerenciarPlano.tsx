@@ -1,11 +1,12 @@
 'use client'
 
+import { useState } from 'react'
+
 interface Props {
   plano: string
+  token: string
   onClose: () => void
 }
-
-const UPGRADE_URL = process.env.NEXT_PUBLIC_UPGRADE_URL || 'https://saacs.com.br/upgrade'
 
 const PLANOS = [
   {
@@ -34,8 +35,23 @@ const PLANOS = [
   },
 ]
 
-export default function ModalGerenciarPlano({ plano, onClose }: Props) {
+export default function ModalGerenciarPlano({ plano, token, onClose }: Props) {
+  const [loadingCheckout, setLoadingCheckout] = useState(false)
   const isPago = ['standard', 'corporate', 'paid_pro'].includes(plano)
+
+  async function handleUpgrade() {
+    setLoadingCheckout(true)
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const { url } = await res.json()
+      if (url) window.location.href = url
+    } finally {
+      setLoadingCheckout(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -78,14 +94,13 @@ export default function ModalGerenciarPlano({ plano, onClose }: Props) {
                 </ul>
 
                 {p.cta && !isPago && (
-                  <a
-                    href={UPGRADE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-center text-sm font-medium bg-[#1E3A6E] text-white rounded-lg py-2 hover:bg-[#162d56] transition-colors"
+                  <button
+                    onClick={handleUpgrade}
+                    disabled={loadingCheckout}
+                    className="w-full text-center text-sm font-medium bg-[#1E3A6E] text-white rounded-lg py-2 hover:bg-[#162d56] disabled:opacity-50 transition-colors"
                   >
-                    {p.cta} →
-                  </a>
+                    {loadingCheckout ? 'Aguarde…' : `${p.cta} →`}
+                  </button>
                 )}
               </div>
             )

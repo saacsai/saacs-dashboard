@@ -200,6 +200,7 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
       {modalPlano && (
         <ModalGerenciarPlano
           plano={plano}
+          token={token}
           onClose={() => setModalPlano(false)}
         />
       )}
