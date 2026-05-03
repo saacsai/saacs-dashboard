@@ -37,17 +37,23 @@ const PLANOS = [
 
 export default function ModalGerenciarPlano({ plano, token, onClose }: Props) {
   const [loadingCheckout, setLoadingCheckout] = useState(false)
+  const [erroCheckout, setErroCheckout] = useState('')
   const isPago = ['standard', 'corporate', 'paid_pro'].includes(plano)
 
   async function handleUpgrade() {
     setLoadingCheckout(true)
+    setErroCheckout('')
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
-      const { url } = await res.json()
-      if (url) window.location.href = url
+      const json = await res.json()
+      if (!res.ok) { setErroCheckout(json.error || `Erro ${res.status}`); return }
+      if (json.url) window.location.href = json.url
+      else setErroCheckout('URL de checkout não retornada.')
+    } catch (e) {
+      setErroCheckout(String(e))
     } finally {
       setLoadingCheckout(false)
     }
@@ -106,6 +112,10 @@ export default function ModalGerenciarPlano({ plano, token, onClose }: Props) {
             )
           })}
         </div>
+
+        {erroCheckout && (
+          <p className="mx-6 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">{erroCheckout}</p>
+        )}
 
         {/* Corporate */}
         <div className="mx-6 mb-5 p-3 bg-gray-50 rounded-lg text-xs text-gray-500 text-center">
