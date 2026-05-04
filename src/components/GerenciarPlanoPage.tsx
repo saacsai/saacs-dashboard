@@ -29,6 +29,7 @@ const INCLUSOS = [
 ]
 
 const PLANO_PAGO = ['standard', 'corporate', 'paid_pro']
+const PLANO_TOPO = ['paid_pro', 'corporate']
 
 function PortalButton({ token }: { token: string }) {
   const [loading, setLoading] = useState(false)
@@ -79,6 +80,7 @@ type Etapa = 'plano' | 'ciclo' | 'confirmar'
 
 export default function GerenciarPlanoPage({ plano, token, onVoltar }: Props) {
   const isPago = PLANO_PAGO.includes(plano)
+  const isTopo = PLANO_TOPO.includes(plano)
   const [etapa, setEtapa] = useState<Etapa>('plano')
   const [planoSelecionado, setPlanoSelecionado] = useState<'standard' | 'pro'>('standard')
   const [cicloSelecionado, setCicloSelecionado] = useState('standard_mensal')
@@ -143,7 +145,7 @@ export default function GerenciarPlanoPage({ plano, token, onVoltar }: Props) {
             <span>✓</span>
             <span>Você já tem um plano ativo.</span>
           </div>
-          <PortalButton token={token} />
+          {!isTopo && <PortalButton token={token} />}
         </div>
       )}
 
@@ -175,12 +177,12 @@ export default function GerenciarPlanoPage({ plano, token, onVoltar }: Props) {
 
             {/* Standard */}
             <button
-              onClick={() => !isPago && selecionarPlano('standard')}
-              disabled={isPago}
+              onClick={() => plano !== 'standard' && !isTopo && selecionarPlano('standard')}
+              disabled={plano === 'standard' || isTopo}
               className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-colors relative ${
                 plano === 'standard'
                   ? 'border-green-400 bg-green-50 cursor-default'
-                  : isPago
+                  : isTopo
                   ? 'border-gray-200 opacity-60 cursor-default'
                   : 'border-gray-200 hover:border-[#1E3A6E] hover:bg-[#1E3A6E]/5 cursor-pointer'
               }`}
@@ -188,19 +190,19 @@ export default function GerenciarPlanoPage({ plano, token, onVoltar }: Props) {
               {plano === 'standard' && (
                 <span className="absolute top-3 right-3 text-[10px] font-semibold bg-green-500 text-white px-2 py-0.5 rounded-full">✓ ativo</span>
               )}
-              <div className="font-semibold text-gray-900">{isPago ? 'Standard' : 'Upgrade para o Plano Standard'}</div>
+              <div className="font-semibold text-gray-900">{plano === 'standard' || isTopo ? 'Standard' : 'Upgrade para o Plano Standard'}</div>
               <div className="text-sm text-gray-500 mt-0.5">Até 10 projetos</div>
               {!isPago && <div className="text-xs text-[#1E3A6E] mt-2">Ver opções de pagamento →</div>}
             </button>
 
             {/* Pro */}
             <button
-              onClick={() => !isPago && selecionarPlano('pro')}
-              disabled={isPago}
+              onClick={() => plano !== 'paid_pro' && !isTopo && selecionarPlano('pro')}
+              disabled={isTopo}
               className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-colors relative ${
                 plano === 'paid_pro'
                   ? 'border-green-400 bg-green-50 cursor-default'
-                  : isPago
+                  : isTopo
                   ? 'border-gray-200 opacity-60 cursor-default'
                   : 'border-gray-200 hover:border-[#1E3A6E] hover:bg-[#1E3A6E]/5 cursor-pointer'
               }`}
@@ -211,7 +213,7 @@ export default function GerenciarPlanoPage({ plano, token, onVoltar }: Props) {
               {!isPago && (
                 <span className="absolute top-3 right-3 text-[10px] font-semibold bg-[#1E3A6E] text-white px-2 py-0.5 rounded-full">mais popular</span>
               )}
-              <div className="font-semibold text-gray-900">{isPago ? 'Pro' : 'Upgrade para o Plano Pro'}</div>
+              <div className="font-semibold text-gray-900">{isTopo ? 'Pro' : 'Upgrade para o Plano Pro'}</div>
               <div className="text-sm text-gray-500 mt-0.5">Até 20 projetos</div>
               {!isPago && <div className="text-xs text-[#1E3A6E] mt-2">Ver opções de pagamento →</div>}
             </button>
