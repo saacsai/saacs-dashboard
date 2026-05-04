@@ -3,12 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
 const PRICES: Record<string, string> = {
-  standard_mensal:      'price_1TT1fQFR1kh8rsATTdStIKDN',
-  standard_trimestral:  'price_1TT1gOFR1kh8rsATcDiLPQ5r',
-  standard_anual:       'price_1TT1hhFR1kh8rsATcA6ncpYJ',
-  pro_mensal:           'price_1TT0zZFR1kh8rsATsYaHMw9i',
-  pro_trimestral:       'price_1TT0yXFR1kh8rsAT8G1YLy3v',
-  pro_anual:            'price_1TT0w4FR1kh8rsATkO4M3rvN',
+  standard_mensal:      'price_1TTUK8FJk3hY5VQ6aWc1wXXW',
+  standard_trimestral:  'price_1TTUMxFJk3hY5VQ6rcAFwLrg',
+  standard_anual:       'price_1TTUNNFJk3hY5VQ6OTryd64n',
+  pro_mensal:           'price_1TTUUQFJk3hY5VQ6a5ZR5GWK',
+  pro_trimestral:       'price_1TTUSZFJk3hY5VQ6BCm2kgVa',
+  pro_anual:            'price_1TTUUQFJk3hY5VQ6kQG0pQOq',
 }
 
 function getProjectId(req: NextRequest): string | null {

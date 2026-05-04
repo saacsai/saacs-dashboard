@@ -3,12 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
 const PRICE_TIER: Record<string, string> = {
-  price_1TT1fQFR1kh8rsATTdStIKDN: 'standard',
-  price_1TT1gOFR1kh8rsATcDiLPQ5r: 'standard',
-  price_1TT1hhFR1kh8rsATcA6ncpYJ: 'standard',
-  price_1TT0zZFR1kh8rsATsYaHMw9i: 'paid_pro',
-  price_1TT0yXFR1kh8rsAT8G1YLy3v: 'paid_pro',
-  price_1TT0w4FR1kh8rsATkO4M3rvN: 'paid_pro',
+  price_1TTUK8FJk3hY5VQ6aWc1wXXW: 'standard',
+  price_1TTUMxFJk3hY5VQ6rcAFwLrg: 'standard',
+  price_1TTUNNFJk3hY5VQ6OTryd64n: 'standard',
+  price_1TTUUQFJk3hY5VQ6a5ZR5GWK: 'paid_pro',
+  price_1TTUSZFJk3hY5VQ6BCm2kgVa: 'paid_pro',
+  price_1TTUUQFJk3hY5VQ6kQG0pQOq: 'paid_pro',
 }
 
 function supabaseAdmin() {
