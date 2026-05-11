@@ -189,9 +189,23 @@ function DocCard({ doc, config, orgId, token, onSuccess, onError }: {
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
+function formatCnpj(v: string): string {
+  const d = v.replace(/\D/g, '').slice(0, 14)
+  if (d.length <= 2) return d
+  if (d.length <= 5) return `${d.slice(0,2)}.${d.slice(2)}`
+  if (d.length <= 8) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5)}`
+  if (d.length <= 12) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8)}`
+  return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`
+}
+
 export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onOrgCreated }: Props) {
   const [orgId, setOrgId] = useState<string | null>(orgIdProp)
-  const [form, setForm] = useState({ nome_fantasia: '', razao_social: '', cnpj: '' })
+  const [form, setForm] = useState({
+    nome_fantasia: '', razao_social: '', cnpj: '',
+    logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', uf: '', cep: '',
+  })
+  const [buscandoCnpj, setBuscandoCnpj] = useState(false)
+  const [cnpjStatus, setCnpjStatus] = useState<'idle' | 'ok' | 'erro'>('idle')
   const [docs, setDocs] = useState<OrgDoc[]>(
     TODOS_DOCS.map(d => ({ ingrediente: d.id, status: 'pendente' as DocStatus, arquivo_original: null, preview: null }))
   )
@@ -214,6 +228,13 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
             nome_fantasia: d.org.nome_fantasia || '',
             razao_social: d.org.razao_social || '',
             cnpj: d.org.cnpj || '',
+            logradouro: d.org.logradouro || '',
+            numero: d.org.numero || '',
+            complemento: d.org.complemento || '',
+            bairro: d.org.bairro || '',
+            cidade: d.org.cidade || '',
+            uf: d.org.uf || '',
+            cep: d.org.cep || '',
           })
         }
         if (d.docs?.length) {
@@ -237,6 +258,35 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
     setSucesso(true)
     if (sucTimer.current) clearTimeout(sucTimer.current)
     sucTimer.current = setTimeout(() => setSucesso(false), 3000)
+  }
+
+  async function handleCnpjBlur(cnpj: string) {
+    const digits = cnpj.replace(/\D/g, '')
+    if (digits.length !== 14) return
+    setBuscandoCnpj(true)
+    setCnpjStatus('idle')
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
+      if (!res.ok) throw new Error('não encontrado')
+      const d = await res.json()
+      setForm(f => ({
+        ...f,
+        razao_social: d.razao_social || f.razao_social,
+        nome_fantasia: d.nome_fantasia || f.nome_fantasia,
+        logradouro: [d.logradouro_tipo, d.logradouro].filter(Boolean).join(' ') || f.logradouro,
+        numero: d.numero || f.numero,
+        complemento: d.complemento || f.complemento,
+        bairro: d.bairro || f.bairro,
+        cidade: d.municipio || f.cidade,
+        uf: d.uf || f.uf,
+        cep: d.cep || f.cep,
+      }))
+      setCnpjStatus('ok')
+    } catch {
+      setCnpjStatus('erro')
+    } finally {
+      setBuscandoCnpj(false)
+    }
   }
 
   // Criar nova organização
@@ -360,14 +410,78 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
-            <input
-              type="text"
-              value={form.cnpj}
-              onChange={e => setForm(f => ({ ...f, cnpj: e.target.value }))}
-              placeholder="00.000.000/0000-00"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={form.cnpj}
+                onChange={e => setForm(f => ({ ...f, cnpj: formatCnpj(e.target.value) }))}
+                onBlur={e => handleCnpjBlur(e.target.value)}
+                placeholder="00.000.000/0000-00"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {buscandoCnpj && (
+                <span className="absolute right-3 top-2.5 text-xs text-blue-500 flex items-center gap-1">
+                  <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  Buscando…
+                </span>
+              )}
+              {!buscandoCnpj && cnpjStatus === 'ok' && (
+                <span className="absolute right-3 top-2.5 text-xs text-green-600">✓ Dados preenchidos</span>
+              )}
+              {!buscandoCnpj && cnpjStatus === 'erro' && (
+                <span className="absolute right-3 top-2.5 text-xs text-red-500">CNPJ não encontrado</span>
+              )}
+            </div>
           </div>
+
+          {(form.logradouro || form.cidade) && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
+                <input type="text" value={form.logradouro}
+                  onChange={e => setForm(f => ({ ...f, logradouro: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Número</label>
+                <input type="text" value={form.numero}
+                  onChange={e => setForm(f => ({ ...f, numero: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+                <input type="text" value={form.complemento}
+                  onChange={e => setForm(f => ({ ...f, complemento: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+                <input type="text" value={form.bairro}
+                  onChange={e => setForm(f => ({ ...f, bairro: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                <input type="text" value={form.cidade}
+                  onChange={e => setForm(f => ({ ...f, cidade: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">UF</label>
+                  <input type="text" value={form.uf} maxLength={2}
+                    onChange={e => setForm(f => ({ ...f, uf: e.target.value.toUpperCase() }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                  <input type="text" value={form.cep}
+                    onChange={e => setForm(f => ({ ...f, cep: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
+            </div>
+          )}
 
           {erro && <p className="text-sm text-red-600">{erro}</p>}
 
@@ -428,12 +542,78 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
-            <input
-              type="text"
-              value={form.cnpj}
-              onChange={e => setForm(f => ({ ...f, cnpj: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={form.cnpj}
+                onChange={e => setForm(f => ({ ...f, cnpj: formatCnpj(e.target.value) }))}
+                onBlur={e => handleCnpjBlur(e.target.value)}
+                placeholder="00.000.000/0000-00"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {buscandoCnpj && (
+                <span className="absolute right-3 top-2.5 text-xs text-blue-500 flex items-center gap-1">
+                  <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  Buscando…
+                </span>
+              )}
+              {!buscandoCnpj && cnpjStatus === 'ok' && (
+                <span className="absolute right-3 top-2.5 text-xs text-green-600">✓ Dados atualizados</span>
+              )}
+              {!buscandoCnpj && cnpjStatus === 'erro' && (
+                <span className="absolute right-3 top-2.5 text-xs text-red-500">CNPJ não encontrado</span>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-gray-100">
+            <p className="text-xs text-gray-400 mb-3">Endereço — preenchido automaticamente ao informar o CNPJ</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
+                <input type="text" value={form.logradouro}
+                  onChange={e => setForm(f => ({ ...f, logradouro: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Número</label>
+                <input type="text" value={form.numero}
+                  onChange={e => setForm(f => ({ ...f, numero: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+                <input type="text" value={form.complemento}
+                  onChange={e => setForm(f => ({ ...f, complemento: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+                <input type="text" value={form.bairro}
+                  onChange={e => setForm(f => ({ ...f, bairro: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                <input type="text" value={form.cidade}
+                  onChange={e => setForm(f => ({ ...f, cidade: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">UF</label>
+                  <input type="text" value={form.uf} maxLength={2}
+                    onChange={e => setForm(f => ({ ...f, uf: e.target.value.toUpperCase() }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                  <input type="text" value={form.cep}
+                    onChange={e => setForm(f => ({ ...f, cep: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
