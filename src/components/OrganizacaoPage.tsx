@@ -387,28 +387,6 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
 
         <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nome da organização <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.nome_fantasia}
-              onChange={e => setForm(f => ({ ...f, nome_fantasia: e.target.value }))}
-              placeholder="Ex: Associação Quintais Produtivos"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Razão social</label>
-            <input
-              type="text"
-              value={form.razao_social}
-              onChange={e => setForm(f => ({ ...f, razao_social: e.target.value }))}
-              placeholder="Ex: Associação de Desenvolvimento Rural..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
             <div className="relative">
               <input
@@ -432,6 +410,29 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
                 <span className="absolute right-3 top-2.5 text-xs text-red-500">CNPJ não encontrado</span>
               )}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome da organização <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={form.nome_fantasia}
+              onChange={e => setForm(f => ({ ...f, nome_fantasia: e.target.value }))}
+              placeholder="Ex: Associação Quintais Produtivos"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Razão social</label>
+            <input
+              type="text"
+              value={form.razao_social}
+              onChange={e => setForm(f => ({ ...f, razao_social: e.target.value }))}
+              placeholder="Ex: Associação de Desenvolvimento Rural..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           {(form.logradouro || form.cidade) && (
@@ -523,24 +524,6 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
         <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Identificação</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome da organização</label>
-            <input
-              type="text"
-              value={form.nome_fantasia}
-              onChange={e => setForm(f => ({ ...f, nome_fantasia: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Razão social</label>
-            <input
-              type="text"
-              value={form.razao_social}
-              onChange={e => setForm(f => ({ ...f, razao_social: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
             <div className="relative">
               <input
@@ -614,6 +597,24 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
                 </div>
               </div>
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nome da organização</label>
+            <input
+              type="text"
+              value={form.nome_fantasia}
+              onChange={e => setForm(f => ({ ...f, nome_fantasia: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Razão social</label>
+            <input
+              type="text"
+              value={form.razao_social}
+              onChange={e => setForm(f => ({ ...f, razao_social: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </div>
 
