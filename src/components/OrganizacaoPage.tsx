@@ -146,6 +146,8 @@ function DocCard({ doc, config, orgId, token, onSuccess, onError }: {
   onError: (ingrediente: string, msg: string) => void
 }) {
   const isPronto = doc.status === 'pronto'
+  const isPdf = doc.arquivo_original?.toLowerCase().endsWith('.pdf') ?? false
+  const isPdfSemTexto = isPronto && isPdf && (!doc.preview || doc.preview === doc.arquivo_original)
 
   return (
     <div className={`rounded-lg border p-4 ${isPronto ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}`}>
@@ -165,6 +167,21 @@ function DocCard({ doc, config, orgId, token, onSuccess, onError }: {
 
       {isPronto && doc.arquivo_original && (
         <div className="mb-2 text-xs text-gray-500 font-mono truncate">📄 {doc.arquivo_original}</div>
+      )}
+
+      {isPdfSemTexto && (
+        <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+          PDF escaneado — o conteúdo não pôde ser lido automaticamente.{' '}
+          <a
+            href="https://www.ilovepdf.com/pt/ocr-pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline font-medium hover:text-amber-900"
+          >
+            Converta com iLovePDF OCR
+          </a>
+          {' '}e envie novamente, ou use a versão .docx.
+        </div>
       )}
 
       {doc.status === 'erro' && doc.preview && (
