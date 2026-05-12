@@ -58,29 +58,36 @@ function DocUploadZone({
     setLoading(true)
     try {
       const ext = getFileExt(file.name)
-      let conteudo_md: string
+      let res: Response
 
-      if (isClientSideConvertible(ext) || ext === 'pdf') {
+      if (isClientSideConvertible(ext)) {
+        // DOCX/DOC/XLSX: converte client-side, envia JSON
         const md = await convertFileClientSide(file)
-        conteudo_md = md || `[${file.name}]`
+        res = await fetch(`/api/organizacao/upload/${orgId}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ingrediente: docId,
+            conteudo_md: md || `[${file.name}]`,
+            arquivo_original: file.name,
+            tamanho_bytes: file.size,
+          }),
+        })
       } else {
-        // Imagem: registra presença sem extrair texto
-        conteudo_md = `[Imagem: ${file.name}]`
+        // PDF e imagens: envia como FormData → MCP converte com MarkItDown
+        const form = new FormData()
+        form.append('arquivo', file)
+        form.append('ingrediente', docId)
+        res = await fetch(`/api/organizacao/upload/${orgId}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: form,
+        })
       }
 
-      const res = await fetch(`/api/organizacao/upload/${orgId}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ingrediente: docId,
-          conteudo_md,
-          arquivo_original: file.name,
-          tamanho_bytes: file.size,
-        }),
-      })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
-      onSuccess(docId, file.name, conteudo_md.slice(0, 200))
+      onSuccess(docId, file.name, data.preview || '')
     } catch (e) {
       onError(docId, e instanceof Error ? e.message : 'Erro ao processar')
     } finally {
