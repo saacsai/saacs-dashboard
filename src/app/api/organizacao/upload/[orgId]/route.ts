@@ -54,7 +54,13 @@ export async function POST(
       headers: { authorization: token },
       body: form,
     })
-    const mcpData = await mcpRes.json()
+
+    let mcpData: { sucesso?: boolean; conteudo_md?: string | null; error?: string } = {}
+    try {
+      mcpData = await mcpRes.json()
+    } catch {
+      return NextResponse.json({ error: `MCP indisponível (${mcpRes.status})` }, { status: 502 })
+    }
 
     if (!mcpData.sucesso) {
       return NextResponse.json({ error: mcpData.error || 'Falha na conversão' }, { status: 500 })
