@@ -66,7 +66,7 @@ export async function POST(
       return NextResponse.json({ error: mcpData.error || 'Falha na conversão' }, { status: 500 })
     }
 
-    const error = await salvarDoc(orgId, ingrediente, mcpData.conteudo_md, arquivo.name, arquivo.size)
+    const error = await salvarDoc(orgId, ingrediente, mcpData.conteudo_md ?? null, arquivo.name, arquivo.size)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     return NextResponse.json({
