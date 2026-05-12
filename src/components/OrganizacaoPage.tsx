@@ -60,7 +60,7 @@ function DocUploadZone({
       const ext = getFileExt(file.name)
       let conteudo_md: string
 
-      if (isClientSideConvertible(ext)) {
+      if (isClientSideConvertible(ext) || ext === 'pdf') {
         const md = await convertFileClientSide(file)
         conteudo_md = md || `[${file.name}]`
       } else {
