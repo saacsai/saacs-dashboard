@@ -6,8 +6,8 @@ import { convertFileClientSide, getFileExt, isClientSideConvertible } from '@/li
 // ─── Configuração dos documentos da organização ──────────────────────────────
 
 const DOCS_IDENTIDADE = [
-  { id: 'logo',           label: 'Logo',            descricao: 'Logotipo da organização',                accept: '.jpg,.jpeg,.png' },
-  { id: 'papel_timbrado', label: 'Papel timbrado',  descricao: 'Cabeçalho para documentos oficiais',    accept: '.pdf,.jpg,.jpeg,.png' },
+  { id: 'logo',           label: 'Logo',            descricao: 'Logotipo da organização',                accept: '.jpg,.jpeg,.png',    dica: undefined },
+  { id: 'papel_timbrado', label: 'Papel timbrado',  descricao: 'Cabeçalho para documentos oficiais',    accept: '.pdf,.jpg,.jpeg,.png', dica: 'Para melhores resultados, envie em JPG ou PNG — o Claude consegue ver o layout visual e replicar nas cartas e ofícios gerados.' },
 ]
 
 const DOCS_INSTITUCIONAIS = [
@@ -171,6 +171,12 @@ function DocCard({ doc, config, orgId, token, onSuccess, onError }: {
           {isPronto ? '✅ Pronto' : doc.status === 'uploading' ? '⏫ Enviando…' : doc.status === 'erro' ? '❌ Erro' : '○ Aguardando'}
         </span>
       </div>
+
+      {!isPronto && config.dica && (
+        <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+          💡 {config.dica}
+        </div>
+      )}
 
       {isPronto && doc.arquivo_original && (
         <div className="mb-2 text-xs text-gray-500 font-mono truncate">📄 {doc.arquivo_original}</div>
