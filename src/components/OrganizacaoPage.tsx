@@ -75,6 +75,13 @@ function DocUploadZone({
         })
       } else {
         // PDF e imagens: envia como FormData → MCP converte com MarkItDown
+        const MAX_BYTES = 4 * 1024 * 1024
+        if (file.size > MAX_BYTES) {
+          throw new Error(
+            `Arquivo muito grande (${(file.size / 1024 / 1024).toFixed(1)} MB). ` +
+            `Comprima o PDF antes de enviar (máx. 4 MB) — use iLovePDF: https://www.ilovepdf.com/pt/comprimir_pdf`
+          )
+        }
         const form = new FormData()
         form.append('arquivo', file)
         form.append('ingrediente', docId)
