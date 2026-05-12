@@ -22,6 +22,14 @@ const TODOS_DOCS = [...DOCS_IDENTIDADE, ...DOCS_INSTITUCIONAIS]
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
+interface DocConfig {
+  id: string
+  label: string
+  descricao: string
+  accept: string
+  dica?: string
+}
+
 type DocStatus = 'pendente' | 'uploading' | 'pronto' | 'erro'
 
 interface OrgDoc {
@@ -146,7 +154,7 @@ function DocUploadZone({
 
 function DocCard({ doc, config, orgId, token, onSuccess, onError }: {
   doc: OrgDoc
-  config: typeof TODOS_DOCS[number]
+  config: DocConfig
   orgId: string
   token: string
   onSuccess: (ingrediente: string, arquivo: string, preview: string) => void
