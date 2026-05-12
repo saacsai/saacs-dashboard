@@ -14,7 +14,7 @@ const DOCS_INSTITUCIONAIS = [
   { id: 'estatuto',           label: 'Estatuto / Contrato Social', descricao: 'Documento constitutivo da organização',      accept: '.pdf,.docx,.doc' },
   { id: 'ata_dirigentes',     label: 'Ata de Dirigentes',          descricao: 'Ata de eleição da diretoria vigente',         accept: '.pdf,.docx,.doc' },
   { id: 'cartao_cnpj',        label: 'Cartão CNPJ',                descricao: 'Comprovante de CNPJ ativo',                   accept: '.pdf,.jpg,.jpeg,.png' },
-  { id: 'cnds',               label: 'CND / CNDS',                 descricao: 'Certidão Negativa de Débitos',                accept: '.pdf,.jpg,.jpeg,.png' },
+  { id: 'cnds',               label: 'CND / CNDS',                 descricao: 'Certidão Negativa de Débitos (pode enviar várias)', accept: '.pdf,.jpg,.jpeg,.png', multiple: true },
   { id: 'curriculo_entidade', label: 'Currículo da entidade',      descricao: 'Histórico e portfólio da organização',        accept: '.pdf,.docx,.doc' },
 ]
 
@@ -28,6 +28,7 @@ interface DocConfig {
   descricao: string
   accept: string
   dica?: string
+  multiple?: boolean
 }
 
 type DocStatus = 'pendente' | 'uploading' | 'pronto' | 'erro'
@@ -232,6 +233,83 @@ function DocCard({ doc, config, orgId, token, onSuccess, onError }: {
   )
 }
 
+// ─── Card de CNDs (multi-upload) ─────────────────────────────────────────────
+
+function CndsCard({ docs, orgId, token, onSuccess, onError }: {
+  docs: OrgDoc[]
+  orgId: string
+  token: string
+  onSuccess: (ingrediente: string, arquivo: string, preview: string) => void
+  onError: (ingrediente: string, msg: string) => void
+}) {
+  const [loading, setLoading] = useState(false)
+  const prontos = docs.filter(d => d.status === 'pronto')
+
+  const uploadCnd = useCallback(async (file: File) => {
+    setLoading(true)
+    const sanitized = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40)
+    const ingrediente = `cnds_${sanitized}`
+    try {
+      const MAX_BYTES = 4 * 1024 * 1024
+      if (file.size > MAX_BYTES) throw new Error(`Arquivo muito grande (${(file.size / 1024 / 1024).toFixed(1)} MB). Máx. 4 MB.`)
+      const form = new FormData()
+      form.append('arquivo', file)
+      form.append('ingrediente', ingrediente)
+      const res = await fetch(`/api/organizacao/upload/${orgId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      onSuccess(ingrediente, file.name, data.preview || '')
+    } catch (e) {
+      onError(ingrediente, e instanceof Error ? e.message : 'Erro ao processar')
+    } finally {
+      setLoading(false)
+    }
+  }, [orgId, token, onSuccess, onError])
+
+  const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    files.forEach(f => uploadCnd(f))
+    e.target.value = ''
+  }, [uploadCnd])
+
+  return (
+    <div className={`rounded-lg border p-4 ${prontos.length > 0 ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}`}>
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <span className="font-medium text-gray-800 text-sm">CND / CNDS</span>
+          <p className="text-xs text-gray-500 mt-0.5">Certidão Negativa de Débitos (pode enviar várias)</p>
+        </div>
+        <span className={`text-xs font-medium ${prontos.length > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+          {prontos.length > 0 ? `✅ ${prontos.length} arquivo${prontos.length > 1 ? 's' : ''}` : '○ Aguardando'}
+        </span>
+      </div>
+
+      {prontos.length > 0 && (
+        <div className="mb-2 space-y-1">
+          {prontos.map(d => (
+            <div key={d.ingrediente} className="flex items-center justify-between text-xs text-gray-500 font-mono">
+              <span className="truncate">📄 {d.arquivo_original}</span>
+              <button onClick={() => onSuccess(d.ingrediente, '', '')} className="ml-2 text-gray-300 hover:text-red-400 shrink-0">✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <label className={`block border-2 border-dashed rounded-lg p-3 text-center cursor-pointer transition-colors border-gray-300 hover:border-blue-400 hover:bg-gray-50 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" multiple className="hidden" onChange={onChange} />
+        {loading
+          ? <div className="flex items-center justify-center gap-2 text-blue-600 text-sm"><div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />Processando…</div>
+          : <div className="text-gray-500 text-sm"><span className="text-lg mr-1">📎</span>{prontos.length > 0 ? 'Adicionar mais CNDs' : 'Arraste ou clique para selecionar'}</div>
+        }
+      </label>
+    </div>
+  )
+}
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 function formatCnpj(v: string): string {
@@ -284,16 +362,18 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
           })
         }
         if (d.docs?.length) {
-          setDocs(prev => prev.map(doc => {
-            const found = d.docs.find((x: { ingrediente: string; status: string; arquivo_original: string | null; conteudo_md: string | null }) => x.ingrediente === doc.ingrediente)
-            if (!found) return doc
-            return {
-              ...doc,
-              status: found.status as DocStatus,
-              arquivo_original: found.arquivo_original,
-              preview: found.conteudo_md?.slice(0, 200) || null,
-            }
-          }))
+          type RawDoc = { ingrediente: string; status: string; arquivo_original: string | null; conteudo_md: string | null }
+          // docs regulares
+          setDocs(prev => {
+            const updated = prev.map(doc => {
+              const found = d.docs.find((x: RawDoc) => x.ingrediente === doc.ingrediente)
+              if (!found) return doc
+              return { ...doc, status: found.status as DocStatus, arquivo_original: found.arquivo_original, preview: found.conteudo_md?.slice(0, 200) || null }
+            })
+            // cnds_* extras: adicionar ao state se não existirem
+            const cndExtras = d.docs.filter((x: RawDoc) => x.ingrediente.startsWith('cnds_') && !updated.find(u => u.ingrediente === x.ingrediente))
+            return [...updated, ...cndExtras.map((x: RawDoc) => ({ ingrediente: x.ingrediente, status: x.status as DocStatus, arquivo_original: x.arquivo_original, preview: x.conteudo_md?.slice(0, 200) || null }))]
+          })
         }
       })
       .catch(() => setErro('Erro ao carregar organização'))
@@ -380,17 +460,25 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
   }
 
   const handleDocSuccess = useCallback((ingrediente: string, arquivo: string, preview: string) => {
-    setDocs(prev => prev.map(d => d.ingrediente === ingrediente
-      ? { ...d, status: arquivo ? 'pronto' : 'pendente', arquivo_original: arquivo || null, preview: preview || null }
-      : d
-    ))
+    setDocs(prev => {
+      const exists = prev.find(d => d.ingrediente === ingrediente)
+      if (exists) {
+        return prev.map(d => d.ingrediente === ingrediente
+          ? { ...d, status: arquivo ? 'pronto' : 'pendente', arquivo_original: arquivo || null, preview: preview || null }
+          : d
+        )
+      }
+      // cnds_* novo: adicionar ao array
+      return [...prev, { ingrediente, status: arquivo ? 'pronto' : 'pendente' as DocStatus, arquivo_original: arquivo || null, preview: preview || null }]
+    })
   }, [])
 
   const handleDocError = useCallback((ingrediente: string, msg: string) => {
-    setDocs(prev => prev.map(d => d.ingrediente === ingrediente
-      ? { ...d, status: 'erro', preview: msg }
-      : d
-    ))
+    setDocs(prev => {
+      const exists = prev.find(d => d.ingrediente === ingrediente)
+      if (exists) return prev.map(d => d.ingrediente === ingrediente ? { ...d, status: 'erro' as DocStatus, preview: msg } : d)
+      return [...prev, { ingrediente, status: 'erro' as DocStatus, arquivo_original: null, preview: msg }]
+    })
   }, [])
 
   // ── Render ──
@@ -547,8 +635,11 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
 
   // ── Gerenciar organização existente ───────────────────────────────────────
   const docsIdentidade = DOCS_IDENTIDADE.map(cfg => ({ cfg, doc: docs.find(d => d.ingrediente === cfg.id)! }))
-  const docsInstitucionais = DOCS_INSTITUCIONAIS.map(cfg => ({ cfg, doc: docs.find(d => d.ingrediente === cfg.id)! }))
-  const prontos = docs.filter(d => d.status === 'pronto').length
+  const docsInstitucionaisSemCnds = DOCS_INSTITUCIONAIS.filter(cfg => cfg.id !== 'cnds').map(cfg => ({ cfg, doc: docs.find(d => d.ingrediente === cfg.id)! }))
+  const docsCnds = docs.filter(d => d.ingrediente === 'cnds' || d.ingrediente.startsWith('cnds_'))
+  // cnds* contam como 1 slot para a contagem de 7
+  const cndsPronto = docsCnds.some(d => d.status === 'pronto')
+  const prontos = docs.filter(d => !d.ingrediente.startsWith('cnds_') && d.ingrediente !== 'cnds' && d.status === 'pronto').length + (cndsPronto ? 1 : 0)
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -708,7 +799,7 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
           Enviados uma vez — disponíveis em todos os seus projetos.
         </p>
         <div className="space-y-3">
-          {docsInstitucionais.map(({ cfg, doc }) => (
+          {docsInstitucionaisSemCnds.map(({ cfg, doc }) => (
             <DocCard
               key={cfg.id}
               doc={doc}
@@ -719,6 +810,13 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
               onError={handleDocError}
             />
           ))}
+          <CndsCard
+            docs={docsCnds}
+            orgId={orgId}
+            token={token}
+            onSuccess={handleDocSuccess}
+            onError={handleDocError}
+          />
         </div>
       </section>
 

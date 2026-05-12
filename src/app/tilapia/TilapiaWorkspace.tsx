@@ -98,9 +98,11 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
         const orgRes = await fetch('/api/organizacao', { headers: { Authorization: `Bearer ${token}` } })
         const orgData = orgRes.ok ? await orgRes.json() : {}
         setOrgNome(orgData.org?.nome_fantasia || 'Organização')
-        const count = (orgData.docs || []).filter((d: { status: string }) => d.status === 'pronto').length
+        const allDocs: { ingrediente: string; status: string }[] = orgData.docs || []
+        const cndsPronto = allDocs.some(d => (d.ingrediente === 'cnds' || d.ingrediente.startsWith('cnds_')) && d.status === 'pronto')
+        const count = allDocs.filter(d => d.ingrediente !== 'cnds' && !d.ingrediente.startsWith('cnds_') && d.status === 'pronto').length + (cndsPronto ? 1 : 0)
         setOrgDocsCount(count)
-        setOrgStatus(count === 0 ? 'parcial' : count >= 5 ? 'pronto' : 'parcial')
+        setOrgStatus(count === 0 ? 'pendente' : count >= 7 ? 'pronto' : 'parcial')
       } else {
         setOrgId(null)
         setOrgNome('')
