@@ -11,6 +11,7 @@ function getSupabaseWrite() {
 }
 
 async function salvarDoc(orgId: string, ingrediente: string, conteudo_md: string | null, arquivo_original: string | null, tamanho_bytes: number | null) {
+  console.log('[salvarDoc] orgId:', orgId, 'ingrediente:', ingrediente)
   const { error } = await getSupabaseWrite()
     .from('organizacao_docs')
     .upsert({
@@ -22,6 +23,7 @@ async function salvarDoc(orgId: string, ingrediente: string, conteudo_md: string
       tamanho_bytes: tamanho_bytes || null,
       atualizado_em: new Date().toISOString(),
     }, { onConflict: 'organizacao_id,ingrediente' })
+  if (error) console.log('[salvarDoc] error:', error.message, error.code)
   return error
 }
 
