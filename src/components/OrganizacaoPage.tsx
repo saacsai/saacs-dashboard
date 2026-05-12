@@ -214,6 +214,7 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
   const [creating, setCreating] = useState(false)
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState(false)
+  const [reemCriado, setRecemCriado] = useState(false)
   const sucTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Carrega org existente
@@ -304,6 +305,7 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
       const id = data.org.id
       const nome = data.org.nome_fantasia || 'Organização'
       setOrgId(id)
+      setRecemCriado(true)
       onOrgCreated(id, nome)
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Erro ao criar organização')
@@ -518,6 +520,12 @@ export default function OrganizacaoPage({ orgId: orgIdProp, token, onVoltar, onO
           <p className="text-sm text-gray-500 mt-0.5">{prontos}/{TODOS_DOCS.length} documentos enviados</p>
         </div>
       </div>
+
+      {reemCriado && (
+        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800">
+          <strong>Organização criada!</strong> Agora envie os documentos institucionais abaixo — eles ficam disponíveis em todos os seus projetos.
+        </div>
+      )}
 
       {/* Identificação */}
       <section className="bg-white border border-gray-200 rounded-xl p-6 mb-6">

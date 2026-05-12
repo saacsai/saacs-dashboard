@@ -50,9 +50,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ org: null, docs: [] })
   }
 
+  const sbWrite = getSupabaseWrite()
   const [{ data: org }, { data: docs }] = await Promise.all([
-    sb.from('organizacoes').select('*').eq('id', proj.organizacao_id).single(),
-    sb.from('organizacao_docs').select('*').eq('organizacao_id', proj.organizacao_id),
+    sbWrite.from('organizacoes').select('*').eq('id', proj.organizacao_id).single(),
+    sbWrite.from('organizacao_docs').select('*').eq('organizacao_id', proj.organizacao_id),
   ])
 
   return NextResponse.json({ org, docs: docs || [] })
@@ -73,6 +74,13 @@ export async function POST(req: NextRequest) {
       nome_fantasia: body.nome_fantasia || null,
       razao_social: body.razao_social || null,
       cnpj: body.cnpj || null,
+      logradouro: body.logradouro || null,
+      numero: body.numero || null,
+      complemento: body.complemento || null,
+      bairro: body.bairro || null,
+      cidade: body.cidade || null,
+      uf: body.uf || null,
+      cep: body.cep || null,
     })
     .select()
     .single()
