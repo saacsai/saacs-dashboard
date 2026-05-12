@@ -95,12 +95,10 @@ export default function TilapiaWorkspace({ projectId, token }: Props) {
 
       if (proj.organizacao_id) {
         setOrgId(proj.organizacao_id)
-        const [{ data: org }, { data: orgDocs }] = await Promise.all([
-          supabase.from('organizacoes').select('nome_fantasia').eq('id', proj.organizacao_id).single(),
-          supabase.from('organizacao_docs').select('id').eq('organizacao_id', proj.organizacao_id).eq('status', 'pronto'),
-        ])
-        setOrgNome(org?.nome_fantasia || 'Organização')
-        const count = orgDocs?.length || 0
+        const orgRes = await fetch('/api/organizacao', { headers: { Authorization: `Bearer ${token}` } })
+        const orgData = orgRes.ok ? await orgRes.json() : {}
+        setOrgNome(orgData.org?.nome_fantasia || 'Organização')
+        const count = (orgData.docs || []).filter((d: { status: string }) => d.status === 'pronto').length
         setOrgDocsCount(count)
         setOrgStatus(count === 0 ? 'parcial' : count >= 5 ? 'pronto' : 'parcial')
       } else {

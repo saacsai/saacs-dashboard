@@ -172,7 +172,7 @@ function DocCard({ doc, config, orgId, token, onSuccess, onError }: {
         </span>
       </div>
 
-      {!isPronto && config.dica && (
+      {config.dica && (
         <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
           💡 {config.dica}
         </div>
